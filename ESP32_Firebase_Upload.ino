@@ -21,13 +21,11 @@
 // ══════════════════════════════════════
 
 // WiFi
-#define WIFI_SSID     "APNA_WIFI_NAAM"       // Apna WiFi naam
-#define WIFI_PASSWORD "APNA_WIFI_PASSWORD"   // Apna WiFi password
-
-// Firebase (console.firebase.google.com se copy karo)
-#define FIREBASE_HOST "APNA_PROJECT-default-rtdb.firebaseio.com"
-#define FIREBASE_AUTH "APNA_DATABASE_SECRET"  
-// Database Secret: Firebase Console → Project Settings → 
+ #define WIFI_SSID     "vivo Y300 5G"
+ #define WIFI_PASSWORD "76797679"
+  // Firebase
+ #define FIREBASE_HOST "https://aqua-82fea-default-rtdb.firebaseio.com/"
+ #define FIREBASE_AUTH "19Tu7ov9aBJ1WCUAJ6x05olH9fHrYTne2MtjLJPO"ttings → 
 //                  Service Accounts → Database Secrets → Show
 
 // Sensor Pins (apne hardware ke hisaab se change karo)
@@ -35,7 +33,7 @@
 #define TURB_PIN     35   // Turbidity sensor analog pin
 #define TEMP_PIN     32   // NTC Thermistor analog pin
 #define SAL_PIN      33   // Salinity copper strip analog pin
-#define PH_PIN       36   // pH sensor analog pin
+
 
 // Upload interval
 #define UPLOAD_EVERY_MS  5000   // Har 5 seconds mein upload
