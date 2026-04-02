@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AquaGuard — ASHA Worker App</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:   #070d08;
+  --deep:   #0d1a10;
+  --mid:    #122016;
+  --accent: #00e87a;
+  --a2:     #7affd4;
+  --a3:     #ff9f3f;
+  --white:  #eefaf2;
+  --muted:  #5a8a6f;
+  --danger: #ff4d5e;
+  --warn:   #ffc93c;
+  --safe:   #00c96e;
+  --glass:  rgba(0,232,122,0.055);
+  --gb:     rgba(0,232,122,0.14);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html, body {
+  height: 100%; width: 100%;
+  overflow: hidden;
+  font-family: 'Sora', sans-serif;
+  background: var(--navy);
+  color: var(--white);
+}
+
+/* ─── ANIMATED BACKGROUND ─── */
+#bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  overflow: hidden;
+}
+.bg-blob {
+  position: absolute; border-radius: 50%;
+  filter: blur(60px); opacity: 0.07;
+  animation: blobFloat 12s ease-in-out infinite;
+}
+.bg-blob:nth-child(1){ width:300px;height:300px;background:#00e87a;top:-80px;left:-60px;animation-delay:0s; }
+.bg-blob:nth-child(2){ width:200px;height:200px;background:#00b4d8;bottom:100px;right:-40px;animation-delay:-4s; }
+.bg-blob:nth-child(3){ width:150px;height:150px;background:#7affd4;top:40%;left:30%;animation-delay:-8s; }
+@keyframes blobFloat {
+  0%,100%{ transform:translate(0,0) scale(1); }
+  33%{ transform:translate(20px,-30px) scale(1.05); }
+  66%{ transform:translate(-15px,20px) scale(0.95); }
+}
+.grid-lines {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(0,232,122,0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0,232,122,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ─── TOP BAR ─── */
+.topbar {
+  position: fixed; top:0; left:0; right:0; z-index:200;
+  height: 58px;
+  background: rgba(7,13,8,0.9);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--gb);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.1rem;
+}
+.topbar-left { display:flex; align-items:center; gap:10px; }
+.logo-mark {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: linear-gradient(135deg, rgba(0,232,122,0.2), rgba(122,255,212,0.1));
+  border: 1px solid var(--gb);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  position: relative;
+}
+.logo-mark::after {
+  content: ''; position: absolute; inset:-1px; border-radius:10px;
+  background: linear-gradient(135deg,var(--accent),transparent,var(--a2));
+  z-index:-1; opacity:0.4;
+}
+.logo-text { font-family:'Bebas Neue',sans-serif; font-size:1.05rem; letter-spacing:2px; }
+.logo-text span { color:var(--accent); }
+.logo-sub { font-size:0.6rem; color:var(--muted); font-weight:600; letter-spacing:1px; text-transform:uppercase; margin-top:1px; }
+
+.topbar-right { text-align:right; }
+.worker-chip {
+  display: flex; align-items:center; gap:6px;
+  background: var(--glass); border:1px solid var(--gb);
+  border-radius: 20px; padding: 4px 10px;
+}
+.worker-dot { width:7px; height:7px; border-radius:50%; background:var(--accent); animation:livePulse 1.5s infinite; }
+@keyframes livePulse{ 0%,100%{box-shadow:0 0 0 0 rgba(0,232,122,0.5);}50%{box-shadow:0 0 0 5px rgba(0,232,122,0);} }
+.worker-name-top { font-size:0.72rem; font-weight:700; color:var(--a2); max-width:100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.worker-village-top { font-size:0.6rem; color:var(--muted); }
+
+/* ─── MAIN SCROLL AREA ─── */
+#app {
+  position: fixed; top:58px; bottom:68px; left:0; right:0;
+  z-index: 1; overflow: hidden;
+}
+.page {
+  position: absolute; inset:0;
+  overflow-y: auto; overflow-x: hidden;
+  padding: 1.1rem 1rem 1.5rem;
+  opacity: 0; pointer-events:none;
+  transform: translateY(12px);
+  transition: opacity 0.35s cubic-bezier(0.16,1,0.3,1), transform 0.35s cubic-bezier(0.16,1,0.3,1);
+  -webkit-overflow-scrolling: touch;
+}
+.page.active { opacity:1; pointer-events:all; transform:translateY(0); }
+
+/* scrollbar */
+.page::-webkit-scrollbar { width:3px; }
+.page::-webkit-scrollbar-thumb { background:var(--gb); border-radius:2px; }
+
+/* ─── BOTTOM NAV ─── */
+.bottom-nav {
+  position: fixed; bottom:0; left:0; right:0; z-index:200;
+  height: 68px;
+  background: rgba(7,13,8,0.96);
+  backdrop-filter: blur(24px);
+  border-top: 1px solid var(--gb);
+  display: grid; grid-template-columns: repeat(4, 1fr);
+}
+.nav-btn {
+  display: flex; flex-direction:column; align-items:center; justify-content:center;
+  gap: 3px; border:none; background:transparent; cursor:pointer;
+  color: var(--muted); transition: color 0.2s;
+  font-family:'Sora',sans-serif; font-size:0.58rem; font-weight:700;
+  letter-spacing: 0.5px; text-transform: uppercase;
+  position: relative; padding: 0;
+}
+.nav-btn.active { color: var(--accent); }
+.nav-btn::before {
+  content:''; position:absolute; top:0; left:15%; right:15%; height:2px;
+  background: var(--accent); border-radius:0 0 3px 3px;
+  transform: scaleX(0); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.nav-btn.active::before { transform:scaleX(1); }
+.nav-icon { font-size:1.25rem; transition: transform 0.2s; }
+.nav-btn.active .nav-icon { transform:scale(1.1); }
+.nav-badge {
+  position:absolute; top:6px; right:calc(50% - 16px);
+  background:var(--danger); color:#fff;
+  font-size:0.52rem; font-weight:800; padding:1px 5px;
+  border-radius:20px; display:none; font-family:'Sora',sans-serif;
+  animation: badgePop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes badgePop{ from{transform:scale(0);}to{transform:scale(1);} }
+.nav-badge.show { display:block; }
+
+/* ─── SECTION HEADER ─── */
+.sec-head { margin-bottom:1.2rem; }
+.sec-title {
+  font-family:'Bebas Neue',sans-serif; font-size:1.55rem;
+  letter-spacing:1px; display:flex; align-items:center; gap:10px;
+}
+.sec-title span { color:var(--accent); }
+.sec-sub { font-size:0.76rem; color:var(--muted); margin-top:3px; line-height:1.5; }
+
+/* ─── CARD ─── */
+.card {
+  background: var(--glass); border:1px solid var(--gb);
+  border-radius: 16px; padding:1.1rem;
+  margin-bottom: 1rem; position:relative; overflow:hidden;
+}
+.card-shine {
+  position:absolute; top:0; left:0; right:0; height:1px;
+  background: linear-gradient(90deg, transparent, rgba(0,232,122,0.5), transparent);
+}
+.card-label {
+  font-family:'Bebas Neue',sans-serif; font-size:0.78rem;
+  color:var(--accent); letter-spacing:2px; margin-bottom:0.9rem;
+  display:flex; align-items:center; gap:7px;
+}
+
+/* ─── FORM ─── */
+.field { margin-bottom:0.9rem; }
+.field label {
+  display:block; font-size:0.67rem; font-weight:700;
+  color:var(--muted); letter-spacing:1.2px; text-transform:uppercase; margin-bottom:5px;
+}
+.req { color:var(--danger); }
+.field input,
+.field select,
+.field textarea {
+  width:100%; padding:0.68rem 0.9rem;
+  background: rgba(255,255,255,0.04); border:1px solid var(--gb);
+  border-radius:10px; color:var(--white);
+  font-family:'Sora',sans-serif; font-size:0.86rem;
+  outline:none; transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance:none; appearance:none;
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  border-color:var(--accent); box-shadow:0 0 0 3px rgba(0,232,122,0.1);
+}
+.field select option { background:var(--deep); }
+.field textarea { resize:vertical; min-height:75px; }
+.field input[type=number]::-webkit-outer-spin-button,
+.field input[type=number]::-webkit-inner-spin-button { -webkit-appearance:none; }
+.field input[type=number] { -moz-appearance:textfield; }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:0.7rem; }
+.four-col { display:grid; grid-template-columns:1fr 1fr; gap:0.7rem; }
+
+/* ─── DISEASE TILES ─── */
+.disease-grid {
+  display:grid; grid-template-columns:repeat(2,1fr); gap:0.7rem;
+  margin-bottom:0.9rem;
+}
+.dtile {
+  background:rgba(255,255,255,0.03); border:1px solid var(--gb);
+  border-radius:12px; padding:0.7rem 0.8rem;
+  display:flex; flex-direction:column; gap:4px;
+}
+.dtile-label { font-size:0.65rem; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; }
+.dtile-label.c { color:#ff7777; }
+.dtile-label.f { color:var(--warn); }
+.dtile-label.t { color:var(--a3); }
+.dtile-label.o { color:var(--a2); }
+.dtile input {
+  width:100%; padding:0.5rem 0.7rem;
+  background:rgba(255,255,255,0.05); border:1px solid var(--gb);
+  border-radius:8px; color:var(--white);
+  font-family:'JetBrains Mono',monospace; font-size:1rem; font-weight:700;
+  outline:none; text-align:center;
+  transition:border-color 0.2s;
+}
+.dtile.active-c input:focus { border-color:#ff7777; box-shadow:0 0 0 2px rgba(255,119,119,0.1); }
+.dtile.active-f input:focus { border-color:var(--warn); box-shadow:0 0 0 2px rgba(255,201,60,0.1); }
+.dtile.active-t input:focus { border-color:var(--a3); }
+.dtile.active-o input:focus { border-color:var(--a2); }
+
+/* ─── SEVERITY BAR ─── */
+.sev-options { display:grid; grid-template-columns:repeat(3,1fr); gap:0.5rem; margin-bottom:0.9rem; }
+.sev-opt {
+  border-radius:10px; padding:0.6rem 0.3rem; text-align:center;
+  border:1.5px solid transparent; cursor:pointer; transition:all 0.2s;
+  background:rgba(255,255,255,0.03);
+}
+.sev-opt input[type=radio] { display:none; }
+.sev-opt-icon { font-size:1.3rem; display:block; margin-bottom:3px; }
+.sev-opt-lbl { font-size:0.62rem; font-weight:700; letter-spacing:0.5px; }
+.sev-opt.low { color:var(--safe); }
+.sev-opt.med { color:var(--warn); }
+.sev-opt.high { color:var(--danger); }
+.sev-opt.low.chosen  { border-color:var(--safe);  background:rgba(0,201,110,0.1); }
+.sev-opt.med.chosen  { border-color:var(--warn);  background:rgba(255,201,60,0.1); }
+.sev-opt.high.chosen { border-color:var(--danger);background:rgba(255,77,94,0.1); }
+
+/* ─── BUTTONS ─── */
+.btn {
+  width:100%; padding:0.85rem; border-radius:12px;
+  border:none; cursor:pointer; font-family:'Sora',sans-serif;
+  font-size:0.88rem; font-weight:700; letter-spacing:0.5px;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  transition:all 0.22s; position:relative; overflow:hidden;
+}
+.btn::after {
+  content:''; position:absolute; inset:0;
+  background:rgba(255,255,255,0); transition:background 0.2s;
+}
+.btn:active::after { background:rgba(255,255,255,0.08); }
+.btn-primary { background:var(--accent); color:var(--navy); }
+.btn-primary:hover { box-shadow:0 8px 28px rgba(0,232,122,0.35); transform:translateY(-1px); }
+.btn-danger  { background:var(--danger); color:#fff; }
+.btn-danger:hover { box-shadow:0 8px 28px rgba(255,77,94,0.35); transform:translateY(-1px); }
+.btn-outline { background:transparent; color:var(--accent); border:1.5px solid var(--accent); }
+.btn-sm { padding:0.55rem 1rem; font-size:0.76rem; width:auto; }
+.btn:disabled { opacity:0.5; pointer-events:none; }
+
+/* ─── CHIPS ─── */
+.chip {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:3px 9px; border-radius:20px; font-size:0.64rem; font-weight:700;
+}
+.chip-green { background:rgba(0,201,110,0.12); color:var(--safe);   border:1px solid rgba(0,201,110,0.25); }
+.chip-red   { background:rgba(255,77,94,0.12);  color:var(--danger); border:1px solid rgba(255,77,94,0.25); }
+.chip-yellow{ background:rgba(255,201,60,0.12); color:var(--warn);   border:1px solid rgba(255,201,60,0.25); }
+
+/* ─── TOAST ─── */
+.toast {
+  position:fixed; bottom:78px; left:1rem; right:1rem; z-index:500;
+  padding:0.9rem 1.1rem; border-radius:14px;
+  font-weight:700; font-size:0.85rem; line-height:1.4;
+  display:flex; align-items:center; gap:10px;
+  opacity:0; transform:translateY(10px);
+  pointer-events:none;
+  transition:all 0.35s cubic-bezier(0.16,1,0.3,1);
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+}
+.toast.show { opacity:1; transform:translateY(0); }
+.toast.ok  { background:rgba(0,201,110,0.95); color:var(--navy); }
+.toast.err { background:rgba(255,77,94,0.95);  color:#fff; }
+.toast.warn{ background:rgba(255,201,60,0.95); color:var(--navy); }
+
+/* ══════════════════════════════════
+   HOME PAGE
+══════════════════════════════════ */
+.quick-stats {
+  display:grid; grid-template-columns:repeat(2,1fr); gap:0.7rem;
+  margin-bottom:1rem;
+}
+.qstat {
+  background:var(--glass); border:1px solid var(--gb);
+  border-radius:14px; padding:0.9rem 1rem; text-align:center;
+}
+.qstat-val {
+  font-family:'Bebas Neue',sans-serif; font-size:1.9rem; font-weight:900;
+  line-height:1;
+}
+.qstat-lbl { font-size:0.62rem; color:var(--muted); margin-top:3px; font-weight:600; letter-spacing:0.5px; }
+
+/* ══════════════════════════════════
+   SMS PAGE
+══════════════════════════════════ */
+.mandatory-box {
+  background:rgba(255,77,94,0.06); border:1px solid rgba(255,77,94,0.2);
+  border-radius:10px; padding:0.75rem 0.9rem;
+  font-size:0.73rem; color:var(--muted); line-height:1.6;
+  margin-bottom:0.85rem;
+  font-family:'JetBrains Mono',monospace;
+}
+.mandatory-box strong { color:var(--a3); display:block; margin-bottom:3px; }
+.mandatory-preview {
+  color:rgba(238,250,242,0.7);
+  font-size:0.69rem;
+  border-top:1px dashed rgba(255,77,94,0.2);
+  margin-top:6px; padding-top:6px;
+}
+.compose-wrap { margin-bottom:0.9rem; position:relative; }
+.compose-wrap textarea {
+  width:100%; padding:0.75rem 0.9rem; min-height:100px;
+  background:rgba(255,255,255,0.04); border:1px solid var(--gb);
+  border-radius:12px; color:var(--white);
+  font-family:'Sora',sans-serif; font-size:0.84rem; line-height:1.5;
+  outline:none; resize:none;
+  transition:border-color 0.2s, box-shadow 0.2s;
+}
+.compose-wrap textarea:focus {
+  border-color:var(--a3); box-shadow:0 0 0 3px rgba(255,107,53,0.1);
+}
+.char-count {
+  position:absolute; bottom:8px; right:10px;
+  font-size:0.62rem; font-family:'JetBrains Mono',monospace; color:var(--muted);
+}
+
+/* Level Selector */
+.level-row { display:grid; grid-template-columns:repeat(3,1fr); gap:0.5rem; margin-bottom:0.9rem; }
+.level-btn {
+  border-radius:10px; padding:0.6rem 0.3rem; text-align:center;
+  border:1.5px solid transparent; cursor:pointer;
+  font-family:'Sora',sans-serif; font-size:0.65rem; font-weight:700;
+  transition:all 0.2s; background:rgba(255,255,255,0.03);
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+}
+.level-btn.lv-normal { color:var(--safe); }
+.level-btn.lv-warn   { color:var(--warn); }
+.level-btn.lv-emergency { color:var(--danger); }
+.level-btn.lv-normal.sel  { border-color:var(--safe);   background:rgba(0,201,110,0.1); }
+.level-btn.lv-warn.sel    { border-color:var(--warn);   background:rgba(255,201,60,0.1); }
+.level-btn.lv-emergency.sel { border-color:var(--danger); background:rgba(255,77,94,0.1); }
+.level-icon { font-size:1.2rem; }
+
+/* SMS Feed */
+.sms-item {
+  border-radius:13px; padding:0.9rem 1rem; margin-bottom:0.7rem;
+  animation:slideUp 0.4s cubic-bezier(0.16,1,0.3,1) forwards; opacity:0;
+}
+@keyframes slideUp{ to{opacity:1;} }
+.sms-item.red    { background:rgba(255,77,94,0.07);  border:1px solid rgba(255,77,94,0.22); }
+.sms-item.yellow { background:rgba(255,201,60,0.07); border:1px solid rgba(255,201,60,0.22); }
+.sms-item.green  { background:rgba(0,201,110,0.07); border:1px solid rgba(0,201,110,0.22); }
+.sms-item-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px; gap:0.5rem; }
+.sms-item-who  { font-size:0.78rem; font-weight:700; }
+.sms-item-who.red    { color:var(--danger); }
+.sms-item-who.yellow { color:var(--warn); }
+.sms-item-who.green  { color:var(--safe); }
+.sms-item-time { font-family:'JetBrains Mono',monospace; font-size:0.63rem; color:var(--muted); flex-shrink:0; }
+.sms-item-msg  { font-size:0.76rem; color:rgba(238,250,242,0.85); line-height:1.5; }
+.sms-item-delivered {
+  margin-top:5px; font-size:0.62rem; color:var(--accent);
+  display:flex; align-items:center; gap:4px;
+}
+.live-dot { width:5px; height:5px; border-radius:50%; background:currentColor; animation:pulse 1.5s infinite; }
+@keyframes pulse{ 0%,100%{opacity:1;}50%{opacity:0.3;} }
+
+/* ══════════════════════════════════
+   HISTORY PAGE
+══════════════════════════════════ */
+.hist-item {
+  background:var(--glass); border:1px solid var(--gb);
+  border-radius:14px; padding:1rem; margin-bottom:0.8rem;
+  animation:slideUp 0.4s cubic-bezier(0.16,1,0.3,1) forwards; opacity:0;
+}
+.hist-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.7rem; }
+.hist-worker { font-weight:700; font-size:0.85rem; }
+.hist-village { font-size:0.7rem; color:var(--muted); margin-top:1px; }
+.hist-time { font-family:'JetBrains Mono',monospace; font-size:0.63rem; color:var(--muted); text-align:right; }
+.hist-diseases {
+  display:grid; grid-template-columns:repeat(4,1fr); gap:0.5rem; margin-bottom:0.6rem;
+}
+.hist-d {
+  text-align:center; padding:5px 4px;
+  background:rgba(255,255,255,0.03); border-radius:8px;
+}
+.hist-d-val { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; }
+.hist-d-lbl { font-size:0.55rem; color:var(--muted); margin-top:1px; }
+.hist-notes { font-size:0.72rem; color:var(--muted); line-height:1.5; padding-top:0.6rem; border-top:1px solid var(--gb); }
+
+/* ══════════════════════════════════
+   DASHBOARD PAGE
+══════════════════════════════════ */
+.dash-total {
+  background:linear-gradient(135deg, rgba(0,232,122,0.1), rgba(122,255,212,0.05));
+  border:1px solid var(--gb); border-radius:16px;
+  padding:1.3rem; margin-bottom:1rem;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.dash-total-val {
+  font-family:'Bebas Neue',sans-serif; font-size:3rem; font-weight:900;
+  color:var(--accent); line-height:1;
+}
+.dash-total-lbl { font-size:0.72rem; color:var(--muted); margin-top:3px; }
+
+.disease-bars { margin-bottom:1rem; }
+.dbar-row {
+  display:flex; align-items:center; gap:0.8rem;
+  margin-bottom:0.75rem;
+}
+.dbar-label { width:60px; font-size:0.72rem; color:var(--muted); font-weight:600; flex-shrink:0; }
+.dbar-track { flex:1; height:8px; background:rgba(255,255,255,0.07); border-radius:4px; overflow:hidden; }
+.dbar-fill { height:100%; border-radius:4px; transition:width 1s cubic-bezier(0.16,1,0.3,1); }
+.dbar-fill.c { background:linear-gradient(90deg,#ff4d5e,#ff9999); box-shadow:0 0 8px #ff4d5e88; }
+.dbar-fill.f { background:linear-gradient(90deg,var(--warn),#ffe599); box-shadow:0 0 8px rgba(255,201,60,0.5); }
+.dbar-fill.t { background:linear-gradient(90deg,var(--a3),#ffcf9d); box-shadow:0 0 8px rgba(255,159,63,0.5); }
+.dbar-fill.o { background:linear-gradient(90deg,var(--accent),var(--a2)); box-shadow:0 0 8px rgba(0,232,122,0.4); }
+.dbar-val { font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:var(--white); width:25px; text-align:right; flex-shrink:0; }
+
+.status-row {
+  display:grid; grid-template-columns:1fr 1fr; gap:0.7rem; margin-bottom:1rem;
+}
+.status-tile {
+  background:var(--glass); border:1px solid var(--gb);
+  border-radius:14px; padding:0.9rem; text-align:center;
+}
+.status-tile-val {
+  font-family:'Bebas Neue',sans-serif; font-size:1.7rem;
+  color:var(--accent); line-height:1;
+}
+.status-tile-lbl { font-size:0.62rem; color:var(--muted); margin-top:3px; }
+
+.activity-feed { }
+.act-item {
+  display:flex; gap:0.8rem; align-items:flex-start;
+  padding:0.7rem 0; border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.act-dot {
+  width:10px; height:10px; border-radius:50%; flex-shrink:0; margin-top:3px;
+}
+.act-dot.red    { background:var(--danger); box-shadow:0 0 6px var(--danger); }
+.act-dot.yellow { background:var(--warn); box-shadow:0 0 6px var(--warn); }
+.act-dot.green  { background:var(--safe); box-shadow:0 0 6px var(--safe); }
+.act-text { font-size:0.76rem; color:var(--white); line-height:1.4; }
+.act-time { font-family:'JetBrains Mono',monospace; font-size:0.62rem; color:var(--muted); margin-top:2px; }
+
+.empty-state {
+  text-align:center; padding:2.5rem 1rem;
+  color:var(--muted); font-size:0.8rem; font-style:italic;
+}
+.empty-icon { font-size:2.5rem; margin-bottom:0.5rem; opacity:0.5; }
+
+/* scanning line on cards */
+@keyframes scanCard {
+  0%  { top:-2px; opacity:0.6; }
+  100%{ top:100%; opacity:0; }
+}
+</style>
+</head>
+<body>
+
+<!-- BACKGROUND -->
+<div id="bg">
+  <div class="grid-lines"></div>
+  <div class="bg-blob"></div>
+  <div class="bg-blob"></div>
+  <div class="bg-blob"></div>
+</div>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo-mark">💧</div>
+    <div>
+      <div class="logo-text">Aqua<span>Guard</span></div>
+      <div class="logo-sub">ASHA Worker App</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="worker-chip">
+      <div class="worker-dot"></div>
+      <div>
+        <div class="worker-name-top" id="topName">ASHA Worker</div>
+        <div class="worker-village-top" id="topVillage">Gaon: —</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ MAIN APP ════════ -->
+<div id="app">
+
+  <!-- ── HOME PAGE ── -->
+  <div class="page active" id="pg-home">
+
+    <div class="sec-head">
+      <div class="sec-title">🏠 Home <span>Report</span></div>
+      <div class="sec-sub">Gaon ki bimari ki report yahan bharo — AquaGuard dashboard par seedha jayegi</div>
+    </div>
+
+    <!-- Quick Stats (hidden until first submit) -->
+    <div class="quick-stats" id="quickStats" style="display:none;">
+      <div class="qstat">
+        <div class="qstat-val" id="qs-total" style="color:var(--accent)">0</div>
+        <div class="qstat-lbl">Aaj Ke Cases</div>
+      </div>
+      <div class="qstat">
+        <div class="qstat-val" id="qs-reports" style="color:var(--a2)">0</div>
+        <div class="qstat-lbl">Reports Bheji</div>
+      </div>
+      <div class="qstat">
+        <div class="qstat-val" id="qs-cholera" style="color:var(--danger)">0</div>
+        <div class="qstat-lbl">Cholera</div>
+      </div>
+      <div class="qstat">
+        <div class="qstat-val" id="qs-fever" style="color:var(--warn)">0</div>
+        <div class="qstat-lbl">Fever</div>
+      </div>
+    </div>
+
+    <!-- FORM CARD -->
+    <div class="card">
+      <div class="card-shine"></div>
+      <div class="card-label">👩‍⚕️ ASHA WORKER KI DETAILS</div>
+
+      <div class="two-col">
+        <div class="field">
+          <label>ASHA Ka Naam <span class="req">*</span></label>
+          <input type="text" id="f-name" placeholder="Poora naam" oninput="syncTop()">
+        </div>
+        <div class="field">
+          <label>Gaon <span class="req">*</span></label>
+          <input type="text" id="f-village" placeholder="Gaon ka naam" oninput="syncTop()">
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="field">
+          <label>Zila <span class="req">*</span></label>
+          <select id="f-district">
+            <option value="">-- Chunen --</option>
+            <option>Ajmer</option><option>Alwar</option><option>Banswara</option>
+            <option>Baran</option><option>Barmer</option><option>Bharatpur</option>
+            <option>Bhilwara</option><option>Bikaner</option><option>Chittorgarh</option>
+            <option>Churu</option><option>Dausa</option><option>Dholpur</option>
+            <option>Dungarpur</option><option>Hanumangarh</option><option>Jaipur</option>
+            <option>Jaisalmer</option><option>Jalore</option><option>Jhalawar</option>
+            <option>Jhunjhunu</option><option>Jodhpur</option><option>Karauli</option>
+            <option>Kota</option><option>Nagaur</option><option>Pali</option>
+            <option>Pratapgarh</option><option>Rajsamand</option><option>Sawai Madhopur</option>
+            <option>Sikar</option><option>Sirohi</option><option>Sri Ganganagar</option>
+            <option>Tonk</option><option>Udaipur</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Taareekh</label>
+          <input type="date" id="f-date">
+        </div>
+      </div>
+    </div>
+
+    <!-- DISEASE COUNTS -->
+    <div class="card">
+      <div class="card-shine"></div>
+      <div class="card-label">🦠 GAON MEIN BIMARI KE CASES</div>
+      <div class="disease-grid">
+        <div class="dtile active-c">
+          <div class="dtile-label c">🔴 Cholera</div>
+          <input type="number" id="f-cholera" placeholder="0" min="0" oninput="updateDashLive()">
+        </div>
+        <div class="dtile active-f">
+          <div class="dtile-label f">🟡 Bukhar / Fever</div>
+          <input type="number" id="f-fever" placeholder="0" min="0" oninput="updateDashLive()">
+        </div>
+        <div class="dtile active-t">
+          <div class="dtile-label t">🟠 Typhoid</div>
+          <input type="number" id="f-typhoid" placeholder="0" min="0" oninput="updateDashLive()">
+        </div>
+        <div class="dtile active-o">
+          <div class="dtile-label o">🔵 Doosri Bimariyan</div>
+          <input type="number" id="f-others" placeholder="0" min="0" oninput="updateDashLive()">
+        </div>
+      </div>
+    </div>
+
+    <!-- SEVERITY -->
+    <div class="card">
+      <div class="card-shine"></div>
+      <div class="card-label">⚠️ GAMBHIRTA / SEVERITY</div>
+      <div class="sev-options" id="sevOpts">
+        <label class="sev-opt low chosen" onclick="setSev('low',this)">
+          <input type="radio" name="sev" value="low" checked>
+          <span class="sev-opt-icon">✅</span>
+          <span class="sev-opt-lbl">Normal</span>
+        </label>
+        <label class="sev-opt med" onclick="setSev('med',this)">
+          <input type="radio" name="sev" value="med">
+          <span class="sev-opt-icon">⚠️</span>
+          <span class="sev-opt-lbl">Madhyam</span>
+        </label>
+        <label class="sev-opt high" onclick="setSev('high',this)">
+          <input type="radio" name="sev" value="high">
+          <span class="sev-opt-icon">🚨</span>
+          <span class="sev-opt-lbl">Gambhir</span>
+        </label>
+      </div>
+
+      <div class="field">
+        <label>Koi Vishesh Baat (Optional)</label>
+        <textarea id="f-notes" placeholder="Paani ki halat, symptoms, ya koi aur jaankari..."></textarea>
+      </div>
+
+      <button class="btn btn-primary" id="submitBtn" onclick="submitReport()">
+        📤 Report Submit Karo
+      </button>
+    </div>
+
+  </div><!-- /home -->
+
+
+  <!-- ── SMS PAGE ── -->
+  <div class="page" id="pg-sms">
+
+    <div class="sec-head">
+      <div class="sec-title">📱 SMS <span>Alert</span></div>
+      <div class="sec-sub">AquaGuard dashboard par alert bhejo — officials ko turant khhabar milegi</div>
+    </div>
+
+    <!-- Compose -->
+    <div class="card">
+      <div class="card-shine"></div>
+      <div class="card-label">✍️ NAYA ALERT MESSAGE LIKHO</div>
+
+      <div class="mandatory-box">
+        <strong>⚠️ Mandatory Header — Automatic Add Hoga:</strong>
+        <div class="mandatory-preview" id="mandatoryPreview">
+          🚨 ASHA ALERT | Gaon: — | ASHA: — | Taareekh: —
+        </div>
+      </div>
+
+      <div class="two-col" style="margin-bottom:0.85rem;">
+        <div class="field" style="margin:0;">
+          <label>Aapka Naam <span class="req">*</span></label>
+          <input type="text" id="sms-name" placeholder="Naam" oninput="syncSmsToHome(); updatePreview();">
+        </div>
+        <div class="field" style="margin:0;">
+          <label>Gaon <span class="req">*</span></label>
+          <input type="text" id="sms-village" placeholder="Gaon" oninput="syncSmsToHome(); updatePreview();">
+        </div>
+      </div>
+
+      <!-- Level selector -->
+      <div style="font-size:0.67rem;font-weight:700;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:0.5rem;">Alert Level</div>
+      <div class="level-row" id="levelRow">
+        <div class="level-btn lv-normal sel" data-level="green" onclick="setLevel(this)">
+          <span class="level-icon">✅</span>Normal
+        </div>
+        <div class="level-btn lv-warn" data-level="yellow" onclick="setLevel(this)">
+          <span class="level-icon">⚠️</span>Warning
+        </div>
+        <div class="level-btn lv-emergency" data-level="red" onclick="setLevel(this)">
+          <span class="level-icon">🚨</span>Emergency
+        </div>
+      </div>
+
+      <div class="compose-wrap">
+        <textarea id="smsText" placeholder="Apna message yahan likhein...&#10;Jaise: Gaon mein 5 log cholera se pidit hain. Paani ka colour badal gaya hai. Turant madad chahiye." maxlength="300" oninput="updateCharCount()"></textarea>
+        <div class="char-count" id="charCount">0 / 300</div>
+      </div>
+
+      <button class="btn btn-danger" onclick="sendAlert()">
+        📤 Dashboard Par Alert Bhejo
+      </button>
+    </div>
+
+    <!-- Sent Feed -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.7rem;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:0.85rem;color:var(--accent);letter-spacing:1.5px;">
+        BHEJE GAYE ALERTS
+        <span id="sentBadge" style="display:none;background:var(--danger);color:#fff;font-size:0.58rem;font-family:'Sora',sans-serif;padding:1px 6px;border-radius:20px;font-weight:800;margin-left:6px;"></span>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:0.67rem;color:var(--muted);" id="sentCounter">0 bheje</div>
+    </div>
+    <div id="smsFeed">
+      <div class="empty-state"><div class="empty-icon">📭</div>Abhi tak koi alert nahi bheja gaya</div>
+    </div>
+
+  </div><!-- /sms -->
+
+
+  <!-- ── HISTORY PAGE ── -->
+  <div class="page" id="pg-history">
+
+    <div class="sec-head">
+      <div class="sec-title">📜 Report <span>History</span></div>
+      <div class="sec-sub">Aapki bheji hui saari reports yahan dikhti hain</div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:0.85rem;color:var(--accent);letter-spacing:1.5px;" id="histCount">0 Reports</div>
+      <button class="btn btn-outline btn-sm" onclick="clearHistory()" id="clearHistBtn" style="display:none;">🗑️ Clear All</button>
+    </div>
+
+    <div id="histFeed">
+      <div class="empty-state"><div class="empty-icon">📋</div>Abhi tak koi report submit nahi ki</div>
+    </div>
+
+  </div><!-- /history -->
+
+
+  <!-- ── DASHBOARD PAGE ── -->
+  <div class="page" id="pg-dash">
+
+    <div class="sec-head">
+      <div class="sec-title">📊 My <span>Dashboard</span></div>
+      <div class="sec-sub">Aapki field activity ka live summary</div>
+    </div>
+
+    <!-- Total Cases -->
+    <div class="dash-total">
+      <div>
+        <div class="dash-total-val" id="d-total">0</div>
+        <div class="dash-total-lbl">Total Cases Reported</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:1.8rem;">🏥</div>
+        <div style="font-size:0.68rem;color:var(--muted);margin-top:2px;" id="d-lastUpdate">Koi report nahi</div>
+      </div>
+    </div>
+
+    <!-- Bars -->
+    <div class="card">
+      <div class="card-shine"></div>
+      <div class="card-label">🦠 DISEASE BREAKDOWN</div>
+      <div class="disease-bars">
+        <div class="dbar-row">
+          <div class="dbar-label">Cholera</div>
+          <div class="dbar-track"><div class="dbar-fill c" id="db-c" style="width:0%"></div></div>
+          <div class="dbar-val" id="dv-c">0</div>
+        </div>
+        <div class="dbar-row">
+          <div class="dbar-label">Fever</div>
+          <div class="dbar-track"><div class="dbar-fill f" id="db-f" style="width:0%"></div></div>
+          <div class="dbar-val" id="dv-f">0</div>
+        </div>
+        <div class="dbar-row">
+          <div class="dbar-label">Typhoid</div>
+          <div class="dbar-track"><div class="dbar-fill t" id="db-t" style="width:0%"></div></div>
+          <div class="dbar-val" id="dv-t">0</div>
+        </div>
+        <div class="dbar-row">
+          <div class="dbar-label">Others</div>
+          <div class="dbar-track"><div class="dbar-fill o" id="db-o" style="width:0%"></div></div>
+          <div class="dbar-val" id="dv-o">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Tiles -->
+    <div class="status-row">
+      <div class="status-tile">
+        <div class="status-tile-val" id="d-reports">0</div>
+        <div class="status-tile-lbl">Reports Bheji</div>
+      </div>
+      <div class="status-tile">
+        <div class="status-tile-val" id="d-sms" style="color:var(--a3)">0</div>
+        <div class="status-tile-lbl">SMS Alerts Bheje</div>
+      </div>
+      <div class="status-tile">
+        <div class="status-tile-val" id="d-critical" style="color:var(--danger)">0</div>
+        <div class="status-tile-lbl">Critical Alerts</div>
+      </div>
+      <div class="status-tile">
+        <div class="status-tile-val" id="d-villages" style="color:var(--a2)">0</div>
+        <div class="status-tile-lbl">Villages Covered</div>
+      </div>
+    </div>
+
+    <!-- Activity Feed -->
+    <div class="card">
+      <div class="card-shine"></div>
+      <div class="card-label">⚡ RECENT ACTIVITY</div>
+      <div id="activityFeed">
+        <div class="empty-state" style="padding:1rem 0;"><div class="empty-icon" style="font-size:1.5rem;">📡</div>Koi activity nahi abhi tak</div>
+      </div>
+    </div>
+
+  </div><!-- /dash -->
+
+</div><!-- /app -->
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn active" id="nb-home" onclick="goTo('home')">
+    <span class="nav-icon">🏠</span>Home
+  </button>
+  <button class="nav-btn" id="nb-sms" onclick="goTo('sms')">
+    <span class="nav-badge" id="nb-sms-badge"></span>
+    <span class="nav-icon">📱</span>SMS Alert
+  </button>
+  <button class="nav-btn" id="nb-history" onclick="goTo('history')">
+    <span class="nav-badge" id="nb-hist-badge"></span>
+    <span class="nav-icon">📜</span>History
+  </button>
+  <button class="nav-btn" id="nb-dash" onclick="goTo('dash')">
+    <span class="nav-icon">📊</span>Dashboard
+  </button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="t-icon">✅</span>
+  <span id="t-msg"></span>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+const state = {
+  totals: { cholera:0, fever:0, typhoid:0, others:0 },
+  reports: 0, smsCount: 0, criticals: 0,
+  villages: new Set(),
+  history: [], smsHistory: [],
+  currentSev: 'low', currentLevel: 'green'
+};
+
+// Set today
+document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+function goTo(tab) {
+  ['home','sms','history','dash'].forEach(t => {
+    document.getElementById('pg-'+t).classList.toggle('active', t===tab);
+    document.getElementById('nb-'+t).classList.toggle('active', t===tab);
+  });
+  if(tab==='sms') {
+    document.getElementById('nb-sms-badge').classList.remove('show');
+    const n = document.getElementById('f-name').value;
+    const v = document.getElementById('f-village').value;
+    if(n && !document.getElementById('sms-name').value) document.getElementById('sms-name').value = n;
+    if(v && !document.getElementById('sms-village').value) document.getElementById('sms-village').value = v;
+    updatePreview();
+  }
+  if(tab==='history') document.getElementById('nb-hist-badge').classList.remove('show');
+  if(tab==='dash') animateDashBars();
+}
+
+// ══════════════════════════════════════
+// TOP BAR SYNC
+// ══════════════════════════════════════
+function syncTop() {
+  const n = document.getElementById('f-name').value || 'ASHA Worker';
+  const v = document.getElementById('f-village').value || '—';
+  document.getElementById('topName').textContent = n;
+  document.getElementById('topVillage').textContent = 'Gaon: ' + v;
+}
+function syncSmsToHome() {
+  const n = document.getElementById('sms-name').value;
+  const v = document.getElementById('sms-village').value;
+  if(n) document.getElementById('f-name').value = n;
+  if(v) document.getElementById('f-village').value = v;
+  syncTop();
+}
+
+// ══════════════════════════════════════
+// SEVERITY
+// ══════════════════════════════════════
+function setSev(val, el) {
+  state.currentSev = val;
+  document.querySelectorAll('.sev-opt').forEach(o => o.classList.remove('chosen'));
+  el.classList.add('chosen');
+}
+
+// ══════════════════════════════════════
+// LEVEL (SMS)
+// ══════════════════════════════════════
+function setLevel(el) {
+  state.currentLevel = el.dataset.level;
+  document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+// ══════════════════════════════════════
+// MANDATORY PREVIEW
+// ══════════════════════════════════════
+function updatePreview() {
+  const n = document.getElementById('sms-name').value || '—';
+  const v = document.getElementById('sms-village').value || '—';
+  const d = new Date().toLocaleDateString('hi-IN');
+  document.getElementById('mandatoryPreview').textContent =
+    `🚨 ASHA ALERT | Gaon: ${v} | ASHA: ${n} | Taareekh: ${d}`;
+}
+
+function updateCharCount() {
+  const len = document.getElementById('smsText').value.length;
+  document.getElementById('charCount').textContent = len + ' / 300';
+  document.getElementById('charCount').style.color = len > 250 ? 'var(--warn)' : 'var(--muted)';
+}
+
+// ══════════════════════════════════════
+// SUBMIT REPORT
+// ══════════════════════════════════════
+function submitReport() {
+  const name    = document.getElementById('f-name').value.trim();
+  const village = document.getElementById('f-village').value.trim();
+  const district= document.getElementById('f-district').value;
+
+  if(!name)    { showToast('ASHA worker ka naam bharo!','err'); return; }
+  if(!village) { showToast('Gaon ka naam bharo!','err'); return; }
+  if(!district){ showToast('Zila select karo!','err'); return; }
+
+  const c = parseInt(document.getElementById('f-cholera').value)||0;
+  const f = parseInt(document.getElementById('f-fever').value)||0;
+  const t = parseInt(document.getElementById('f-typhoid').value)||0;
+  const o = parseInt(document.getElementById('f-others').value)||0;
+  const total = c+f+t+o;
+  const notes = document.getElementById('f-notes').value.trim();
+  const sev   = state.currentSev;
+  const date  = document.getElementById('f-date').value;
+  const now   = new Date();
+  const timeStr = now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+
+  // Update state
+  state.totals.cholera += c;
+  state.totals.fever   += f;
+  state.totals.typhoid += t;
+  state.totals.others  += o;
+  state.reports++;
+  state.villages.add(village);
+  if(sev==='high') state.criticals++;
+
+  const entry = { name, village, district, date, timeStr, c, f, t, o, total, sev, notes };
+  state.history.unshift(entry);
+
+  // Update quick stats
+  document.getElementById('quickStats').style.display = 'grid';
+  refreshQuickStats();
+  refreshDash();
+
+  // Add to history tab
+  addHistItem(entry);
+  document.getElementById('histCount').textContent = state.history.length + ' Reports';
+  document.getElementById('clearHistBtn').style.display = 'inline-flex';
+  document.getElementById('nb-hist-badge').textContent = '!';
+  document.getElementById('nb-hist-badge').classList.add('show');
+
+  // Add to activity
+  addActivity(sev, `${name} — ${village}: ${total} cases (C:${c} F:${f} T:${t})`, timeStr);
+
+  // Auto-send high severity
+  if(sev==='high') {
+    const autoMsg = `🚨 GAMBHIR STHITI: ${village} mein ${total} log bimar hain. Cholera: ${c}, Fever: ${f}, Typhoid: ${t}. TURANT MADAD CHAHIYE!`;
+    dispatchSMS(name, village, autoMsg, 'red', true);
+    document.getElementById('nb-sms-badge').textContent='!';
+    document.getElementById('nb-sms-badge').classList.add('show');
+  }
+
+  // Save to localStorage (bridge to website)
+  // 1. SMS alert style save (for dashboard SMS inbox)
+  bridgeSave(name, village, `ASHA REPORT | ${village}, ${district} | Cases: ${total} (Cholera:${c}, Fever:${f}, Typhoid:${t}) | Gambhirta: ${sev==='high'?'GAMBHIR':sev==='med'?'MADHYAM':'NORMAL'}${notes?' | '+notes:''}`, sev==='high'?'red':sev==='med'?'yellow':'green');
+  // 2. Full structured report save (for ASHA Reports page)
+  bridgeSaveReport({
+    worker_name: name,
+    village:     village,
+    district:    district,
+    date:        date,
+    timeStr:     timeStr,
+    cholera:     c,
+    fever:       f,
+    typhoid:     t,
+    others:      o,
+    total:       total,
+    severity:    sev,
+    notes:       notes
+  });
+
+  // Clear form numbers
+  ['f-cholera','f-fever','f-typhoid','f-others','f-notes'].forEach(id => document.getElementById(id).value='');
+  setSev('low', document.querySelectorAll('.sev-opt')[0]);
+
+  showToast(sev==='high' ? '🚨 Gambhir report bheji! Dashboard par alert gaya!' : '✅ Report successfully submit ho gayi!', sev==='high'?'warn':'ok');
+}
+
+// ══════════════════════════════════════
+// SEND SMS ALERT
+// ══════════════════════════════════════
+function sendAlert() {
+  const name    = document.getElementById('sms-name').value.trim();
+  const village = document.getElementById('sms-village').value.trim();
+  const msg     = document.getElementById('smsText').value.trim();
+  const level   = state.currentLevel;
+
+  if(!name)    { showToast('Apna naam likho!','err'); return; }
+  if(!village) { showToast('Gaon ka naam likho!','err'); return; }
+  if(!msg)     { showToast('Message khaali hai!','err'); return; }
+
+  const d = new Date().toLocaleDateString('hi-IN');
+  const fullMsg = `🚨 ASHA ALERT | Gaon: ${village} | ASHA: ${name} | Taareekh: ${d}\n\n${msg}`;
+
+  dispatchSMS(name, village, fullMsg, level, false);
+  bridgeSave(name, village, fullMsg, level);
+
+  document.getElementById('smsText').value = '';
+  document.getElementById('charCount').textContent = '0 / 300';
+  syncTop();
+  showToast('📤 Alert dashboard par bhej diya!','ok');
+}
+
+// ══════════════════════════════════════
+// DISPATCH SMS (add to feed + counter)
+// ══════════════════════════════════════
+function dispatchSMS(name, village, msg, level, isAuto) {
+  const feed = document.getElementById('smsFeed');
+  const empty = feed.querySelector('.empty-state');
+  if(empty) empty.remove();
+
+  state.smsCount++;
+  if(level==='red') state.criticals++;
+  document.getElementById('sentCounter').textContent = state.smsCount + ' bheje';
+  document.getElementById('d-sms').textContent = state.smsCount;
+  document.getElementById('d-critical').textContent = state.criticals;
+
+  const icons = {red:'🔴',yellow:'🟡',green:'✅'};
+  const timeStr = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+
+  const div = document.createElement('div');
+  div.className = `sms-item ${level}`;
+  div.style.animationDelay = '0s';
+  div.innerHTML = `
+    <div class="sms-item-head">
+      <div class="sms-item-who ${level}">${icons[level]} ${name} — ${village}${isAuto?' <span style="font-size:0.58rem;background:rgba(255,77,94,0.2);padding:1px 5px;border-radius:4px;color:var(--danger);">AUTO</span>':''}</div>
+      <div class="sms-item-time">${timeStr}</div>
+    </div>
+    <div class="sms-item-msg">${msg}</div>
+    <div class="sms-item-delivered"><span class="live-dot" style="color:var(--accent);"></span>Dashboard par deliver hua</div>
+  `;
+  feed.insertBefore(div, feed.firstChild);
+
+  const badge = document.getElementById('sentBadge');
+  badge.textContent = state.smsCount;
+  badge.style.display = 'inline';
+
+  state.smsHistory.unshift({name,village,msg,level,timeStr});
+  addActivity(level, `SMS Alert: ${village} — ${msg.substring(0,60)}...`, timeStr);
+}
+
+// ══════════════════════════════════════
+// HISTORY TAB
+// ══════════════════════════════════════
+function addHistItem(e) {
+  const feed = document.getElementById('histFeed');
+  const empty = feed.querySelector('.empty-state');
+  if(empty) empty.remove();
+
+  const isHigh = e.sev==='high', isMed = e.sev==='med';
+  const chip = isHigh ? '<span class="chip chip-red">🚨 Gambhir</span>' :
+               isMed  ? '<span class="chip chip-yellow">⚠️ Madhyam</span>' :
+                        '<span class="chip chip-green">✅ Normal</span>';
+  const borderColor = isHigh ? 'rgba(255,77,94,0.3)' : isMed ? 'rgba(255,201,60,0.3)' : 'rgba(0,201,110,0.3)';
+
+  const div = document.createElement('div');
+  div.className = 'hist-item';
+  div.style.borderColor = borderColor;
+  div.style.animationDelay = '0s';
+  div.innerHTML = `
+    <div class="hist-head">
+      <div>
+        <div class="hist-worker">${e.name}</div>
+        <div class="hist-village">${e.village}, ${e.district}</div>
+      </div>
+      <div>
+        <div class="hist-time">${e.timeStr}<br>${e.date}</div>
+        <div style="margin-top:4px;text-align:right;">${chip}</div>
+      </div>
+    </div>
+    <div class="hist-diseases">
+      <div class="hist-d"><div class="hist-d-val" style="color:var(--danger)">${e.c}</div><div class="hist-d-lbl">Cholera</div></div>
+      <div class="hist-d"><div class="hist-d-val" style="color:var(--warn)">${e.f}</div><div class="hist-d-lbl">Fever</div></div>
+      <div class="hist-d"><div class="hist-d-val" style="color:var(--a3)">${e.t}</div><div class="hist-d-lbl">Typhoid</div></div>
+      <div class="hist-d"><div class="hist-d-val" style="color:var(--a2)">${e.o}</div><div class="hist-d-lbl">Others</div></div>
+    </div>
+    ${e.notes ? `<div class="hist-notes">📝 ${e.notes}</div>` : ''}
+  `;
+  feed.insertBefore(div, feed.firstChild);
+}
+
+function clearHistory() {
+  if(!confirm('Saari history delete karni hai?')) return;
+  document.getElementById('histFeed').innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div>Koi report nahi</div>';
+  document.getElementById('histCount').textContent = '0 Reports';
+  document.getElementById('clearHistBtn').style.display = 'none';
+}
+
+// ══════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════
+function refreshDash() {
+  const {cholera:c, fever:f, typhoid:t, others:o} = state.totals;
+  const total = c+f+t+o;
+
+  document.getElementById('d-total').textContent   = total;
+  document.getElementById('d-reports').textContent = state.reports;
+  document.getElementById('d-sms').textContent     = state.smsCount;
+  document.getElementById('d-critical').textContent= state.criticals;
+  document.getElementById('d-villages').textContent= state.villages.size;
+  document.getElementById('d-lastUpdate').textContent = 'Last: ' + new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+
+  document.getElementById('dv-c').textContent = c;
+  document.getElementById('dv-f').textContent = f;
+  document.getElementById('dv-t').textContent = t;
+  document.getElementById('dv-o').textContent = o;
+}
+
+function animateDashBars() {
+  const {cholera:c, fever:f, typhoid:t, others:o} = state.totals;
+  const max = Math.max(c,f,t,o,1);
+  document.getElementById('db-c').style.width = (c/max*100)+'%';
+  document.getElementById('db-f').style.width = (f/max*100)+'%';
+  document.getElementById('db-t').style.width = (t/max*100)+'%';
+  document.getElementById('db-o').style.width = (o/max*100)+'%';
+}
+
+function refreshQuickStats() {
+  const {cholera:c, fever:f, typhoid:t, others:o} = state.totals;
+  document.getElementById('qs-total').textContent   = c+f+t+o;
+  document.getElementById('qs-reports').textContent = state.reports;
+  document.getElementById('qs-cholera').textContent = c;
+  document.getElementById('qs-fever').textContent   = f;
+}
+
+function updateDashLive() {
+  // live update total in quick stats (not committed yet)
+  const c = parseInt(document.getElementById('f-cholera').value)||0;
+  const f = parseInt(document.getElementById('f-fever').value)||0;
+  const t = parseInt(document.getElementById('f-typhoid').value)||0;
+  const o = parseInt(document.getElementById('f-others').value)||0;
+  // just a visual cue
+}
+
+// ══════════════════════════════════════
+// ACTIVITY FEED
+// ══════════════════════════════════════
+function addActivity(level, text, time) {
+  const feed = document.getElementById('activityFeed');
+  const empty = feed.querySelector('.empty-state');
+  if(empty) empty.remove();
+
+  const div = document.createElement('div');
+  div.className = 'act-item';
+  div.innerHTML = `
+    <div class="act-dot ${level}"></div>
+    <div>
+      <div class="act-text">${text}</div>
+      <div class="act-time">${time}</div>
+    </div>
+  `;
+  feed.insertBefore(div, feed.firstChild);
+
+  // Keep only last 10
+  const items = feed.querySelectorAll('.act-item');
+  if(items.length > 10) items[items.length-1].remove();
+}
+
+// ══════════════════════════════════════
+// ══════════════════════════════════════
+// BRIDGE TO FIREBASE (real-time sync with dashboard)
+const FB_REPORTS = "https://aqua-82fea-default-rtdb.firebaseio.com/asha_reports.json";
+const FB_ALERTS  = "https://aqua-82fea-default-rtdb.firebaseio.com/asha_alerts.json";
+
+function bridgeSave(name, village, msg, level) {
+  fetch(FB_ALERTS, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({name, village, msg, level, time: new Date().toISOString()})
+  })
+  .then(r => r.json())
+  .then(d => console.log('Alert saved:', d))
+  .catch(e => console.log('Alert error:', e));
+}
+
+function bridgeSaveReport(reportObj) {
+  fetch(FB_REPORTS, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({...reportObj, savedAt: new Date().toISOString()})
+  })
+  .then(r => r.json())
+  .then(d => console.log('Report saved to Firebase:', d))
+  .catch(e => console.log('Report error:', e));
+}
+
+// ══════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════
+let toastTimer;
+function showToast(msg, type='ok') {
+  clearTimeout(toastTimer);
+  const t=document.getElementById('toast');
+  const icons = {ok:'✅',err:'❌',warn:'⚠️'};
+  document.getElementById('t-icon').textContent = icons[type]||'ℹ️';
+  document.getElementById('t-msg').textContent  = msg;
+  t.className = `toast show ${type}`;
+  toastTimer = setTimeout(()=>{ t.className='toast '+type; }, 3000);
+}
+
+// Init preview
+updatePreview();
+</script>
+</body>
+</html>
