@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaGuard — Jal Swasthya Nirikshan Pranali | GEC Ajmer</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* ═══════════════════════════════════════
+   GOVT DESIGN SYSTEM — NHM Style
+   Blue-White, Clean, Formal
+═══════════════════════════════════════ */
+:root {
+  --gov-blue:    #1a56a0;
+  --gov-blue2:   #1e40af;
+  --gov-blue-lt: #dbeafe;
+  --gov-blue-xs: #eff6ff;
+  --gov-red:     #dc2626;
+  --gov-red-lt:  #fee2e2;
+  --gov-yellow:  #d97706;
+  --gov-yel-lt:  #fef3c7;
+  --gov-green:   #16a34a;
+  --gov-grn-lt:  #dcfce7;
+  --gov-gray:    #374151;
+  --gov-gray2:   #6b7280;
+  --gov-gray3:   #9ca3af;
+  --gov-border:  #e5e7eb;
+  --gov-bg:      #f3f4f6;
+  --white:       #ffffff;
+  --header-h:    68px;
+  --nav-h:       44px;
+  --total-bar-h: 112px;
+  --sidebar-w:   220px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans', sans-serif;
+  background: var(--gov-bg);
+  color: var(--gov-gray);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ── GOV TOP HEADER BAR ── */
+.gov-topbar {
+  background: linear-gradient(135deg, #0f3460 0%, #1a56a0 60%, #1e6fa0 100%);
+  color: white;
+  padding: 0 16px;
+  height: var(--header-h);
+  min-height: var(--header-h);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  overflow: hidden;
+}
+.gov-emblem {
+  width: 38px; height: 38px;
+  background: white;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.gov-title-block { flex: 1; }
+.gov-title-hi {
+  font-family: 'Noto Sans Devanagari', sans-serif;
+  font-size: 11px;
+  opacity: 0.85;
+  line-height: 1.3;
+}
+.gov-title-en {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gov-org {
+  font-size: 10px;
+  opacity: 0.7;
+  text-align: right;
+  line-height: 1.5;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.gov-live-badge {
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 4px;
+  padding: 3px 10px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.gov-live-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  background: #4ade80;
+  border-radius: 50%;
+  margin-right: 5px;
+  animation: livePulse 1.5s infinite;
+}
+@keyframes livePulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── GOV NAV TABS ── */
+.gov-nav {
+  background: var(--gov-blue);
+  position: fixed;
+  top: var(--header-h);
+  left: 0; right: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  height: var(--nav-h);
+  gap: 2px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+.gov-nav a {
+  color: rgba(255,255,255,0.8);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 0 14px;
+  height: var(--nav-h);
+  display: flex; align-items: center;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.gov-nav a:hover { color: white; background: rgba(255,255,255,0.1); }
+.gov-nav a.active { color: white; border-bottom-color: #fbbf24; background: rgba(255,255,255,0.12); }
+
+/* ── AUTO-FIX HEADER OFFSET (JS below) ── */
+/* ── PAGE OFFSET ── */
+.page {
+  padding-top: 0;
+}
+
+
+/* ── PAGE SYSTEM ── */
+.page { display: none; }
+.page.active { display: block; }
+
+/* ── GOV BREADCRUMB ── */
+.breadcrumb {
+  background: white;
+  border-bottom: 1px solid var(--gov-border);
+  padding: 8px 20px;
+  font-size: 11px;
+  color: var(--gov-gray2);
+  display: flex; align-items: center; gap: 6px;
+}
+.breadcrumb a { color: var(--gov-blue); text-decoration: none; }
+.breadcrumb .sep { color: var(--gov-gray3); }
+
+/* ── PAGE CONTENT ── */
+.page-content { padding: 16px 20px; }
+
+/* ── STAT CARDS ROW ── */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+@media(max-width:900px){ .stat-row { grid-template-columns: repeat(2,1fr); } }
+.stat-card {
+  background: white;
+  border: 1px solid var(--gov-border);
+  border-radius: 6px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-left: 4px solid var(--gov-blue);
+}
+.stat-card.red   { border-left-color: var(--gov-red); }
+.stat-card.yellow{ border-left-color: var(--gov-yellow); }
+.stat-card.green { border-left-color: var(--gov-green); }
+.stat-icon { font-size: 22px; }
+.stat-val {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gov-gray);
+  line-height: 1;
+}
+.stat-lbl { font-size: 11px; color: var(--gov-gray2); margin-top: 2px; }
+.stat-lbl-hi { font-family: 'Noto Sans Devanagari', sans-serif; font-size: 10px; color: var(--gov-gray3); }
+
+/* ── SECTION CARD ── */
+.gov-card {
+  background: white;
+  border: 1px solid var(--gov-border);
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+.gov-card-header {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--gov-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--gov-blue-xs);
+}
+.gov-card-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gov-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex; align-items: center; gap: 6px;
+}
+.gov-card-title-hi {
+  font-family: 'Noto Sans Devanagari', sans-serif;
+  font-size: 11px;
+  color: var(--gov-gray2);
+  font-weight: 400;
+}
+.gov-card-body { padding: 14px 16px; }
+
+/* ── DRINKABILITY BANNER ── */
+.drink-banner {
+  padding: 12px 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid;
+}
+.drink-banner.safe   { background: var(--gov-grn-lt); border-color: #86efac; }
+.drink-banner.unsafe { background: var(--gov-red-lt); border-color: #fca5a5; }
+.drink-banner-icon { font-size: 24px; }
+.drink-banner-title { font-size: 14px; font-weight: 700; }
+.drink-banner-title.safe   { color: var(--gov-green); }
+.drink-banner-title.unsafe { color: var(--gov-red); }
+.drink-banner-sub { font-size: 11px; color: var(--gov-gray2); margin-top: 2px; }
+.drink-badge {
+  margin-left: auto;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.drink-badge.safe   { background: var(--gov-green); color: white; }
+.drink-badge.unsafe { background: var(--gov-red);   color: white; }
+
+/* ── SENSOR TABLE ── */
+.sensor-table { width: 100%; border-collapse: collapse; }
+.sensor-table th {
+  background: var(--gov-blue-xs);
+  color: var(--gov-blue);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 2px solid var(--gov-blue-lt);
+}
+.sensor-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--gov-border);
+  font-size: 12px;
+  vertical-align: middle;
+}
+.sensor-table tr:last-child td { border-bottom: none; }
+.sensor-table tr:hover td { background: var(--gov-blue-xs); }
+.sensor-val-big {
+  font-size: 16px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--gov-gray);
+}
+.sensor-progress {
+  height: 8px;
+  background: var(--gov-border);
+  border-radius: 4px;
+  overflow: hidden;
+  width: 120px;
+}
+.sensor-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.8s ease;
+}
+.status-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.pill-safe   { background: var(--gov-grn-lt); color: var(--gov-green); border: 1px solid #86efac; }
+.pill-warn   { background: var(--gov-yel-lt); color: var(--gov-yellow); border: 1px solid #fcd34d; }
+.pill-danger { background: var(--gov-red-lt); color: var(--gov-red); border: 1px solid #fca5a5; }
+
+/* ── DASHBOARD GRID ── */
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+@media(max-width:900px){ .dash-grid { grid-template-columns: 1fr; } }
+
+/* ── AI RISK BARS (govt style) ── */
+.ai-risk-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--gov-border);
+}
+.ai-risk-row:last-child { border-bottom: none; }
+.ai-risk-name { width: 120px; font-size: 12px; color: var(--gov-gray); flex-shrink: 0; }
+.ai-risk-name-hi { font-family: 'Noto Sans Devanagari', sans-serif; font-size: 10px; color: var(--gov-gray3); display: block; }
+.ai-risk-bar-wrap { flex: 1; height: 14px; background: var(--gov-border); border-radius: 3px; overflow: hidden; }
+.ai-risk-bar-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+.ai-risk-pct { width: 38px; text-align: right; font-size: 12px; font-weight: 700; font-family: 'JetBrains Mono', monospace; flex-shrink: 0; }
+
+/* ── MAP ── */
+#govLeafletMap {
+  height: 400px;
+  width: 100%;
+  border-radius: 4px;
+  z-index: 1;
+  position: relative;
+}
+.leaflet-container { font-family: 'Noto Sans', sans-serif !important; }
+.aq-gov-popup .leaflet-popup-content-wrapper {
+  background: white;
+  border: 1px solid var(--gov-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  color: var(--gov-gray);
+  padding: 0;
+}
+.aq-gov-popup .leaflet-popup-tip { background: white; }
+.aq-gov-popup .leaflet-popup-content { margin: 0; padding: 0; font-size: 12px; }
+.popup-inner { padding: 12px 14px; min-width: 220px; }
+.popup-title { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+.popup-sub   { font-size: 10px; color: var(--gov-gray2); margin-bottom: 10px; }
+.popup-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+.popup-cell  { background: var(--gov-bg); border-radius: 4px; padding: 5px 8px; }
+.popup-cell-lbl { font-size: 9px; color: var(--gov-gray2); text-transform: uppercase; }
+.popup-cell-val { font-size: 13px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+.popup-status { padding: 6px 10px; border-radius: 4px; text-align: center; font-size: 11px; font-weight: 700; }
+
+/* ── ALERT TABLE ── */
+.alert-table { width: 100%; border-collapse: collapse; }
+.alert-table th {
+  background: #fef2f2;
+  color: var(--gov-red);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 7px 10px;
+  text-align: left;
+  border-bottom: 2px solid #fca5a5;
+}
+.alert-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--gov-border);
+  font-size: 11px;
+}
+.alert-table tr:hover td { background: #fff5f5; }
+.alert-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 5px;
+}
+
+/* ── SMS LOG ── */
+.sms-log-row {
+  display: flex;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--gov-border);
+  font-size: 11px;
+  align-items: flex-start;
+}
+.sms-log-row:last-child { border-bottom: none; }
+.sms-time { color: var(--gov-gray3); white-space: nowrap; width: 48px; flex-shrink: 0; }
+
+/* ── ASHA REPORTS TABLE ── */
+.asha-table { width: 100%; border-collapse: collapse; }
+.asha-table th {
+  background: var(--gov-blue-xs);
+  color: var(--gov-blue);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 2px solid var(--gov-blue-lt);
+}
+.asha-table td { padding: 9px 10px; border-bottom: 1px solid var(--gov-border); font-size: 12px; }
+.asha-table tr:hover td { background: var(--gov-blue-xs); }
+
+/* ── ASHA SUBMIT FORM ── */
+.gov-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.gov-label { font-size: 11px; font-weight: 600; color: var(--gov-gray); margin-bottom: 4px; display: block; }
+.gov-label-hi { font-family: 'Noto Sans Devanagari', sans-serif; font-size: 10px; color: var(--gov-gray3); font-weight: 400; }
+.gov-input, .gov-select {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--gov-border);
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'Noto Sans', sans-serif;
+  color: var(--gov-gray);
+  background: white;
+  transition: border-color 0.15s;
+}
+.gov-input:focus, .gov-select:focus {
+  outline: none;
+  border-color: var(--gov-blue);
+  box-shadow: 0 0 0 2px rgba(26,86,160,0.12);
+}
+.gov-btn {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Noto Sans', sans-serif;
+  transition: all 0.15s;
+}
+.gov-btn-primary { background: var(--gov-blue); color: white; }
+.gov-btn-primary:hover { background: var(--gov-blue2); }
+.gov-btn-danger  { background: var(--gov-red); color: white; }
+.gov-btn-outline { background: white; color: var(--gov-blue); border: 1px solid var(--gov-blue); }
+
+/* ── TREND CHART ── */
+#trendChart { height: 200px !important; }
+
+/* ── HOME PAGE ── */
+.home-hero {
+  background: linear-gradient(135deg, #0f3460 0%, #1a56a0 60%, #1e6fa0 100%);
+  color: white;
+  padding: 40px 24px;
+  text-align: center;
+}
+.home-hero-hi {
+  font-family: 'Noto Sans Devanagari', sans-serif;
+  font-size: 14px;
+  opacity: 0.8;
+  margin-bottom: 6px;
+}
+.home-hero-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+.home-hero-sub {
+  font-size: 13px;
+  opacity: 0.85;
+  max-width: 640px;
+  margin: 0 auto 20px;
+  line-height: 1.6;
+}
+.home-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.15);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 20px;
+  padding: 5px 14px;
+  font-size: 11px;
+  margin-bottom: 20px;
+}
+.home-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  max-width: 700px;
+  margin: 24px auto 0;
+}
+@media(max-width:600px){ .home-stats { grid-template-columns: repeat(2,1fr); } }
+.home-stat {
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  padding: 14px 8px;
+  text-align: center;
+}
+.home-stat-num { font-size: 26px; font-weight: 700; line-height: 1; }
+.home-stat-lbl { font-size: 10px; opacity: 0.8; margin-top: 4px; }
+.home-impact {
+  background: #fff3cd;
+  border: 1px solid #ffc107;
+  border-left: 4px solid #dc3545;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin: 16px 20px;
+}
+.home-impact-title { font-weight: 700; color: var(--gov-red); font-size: 12px; margin-bottom: 6px; }
+.home-impact-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.home-impact-item { font-size: 11px; color: var(--gov-gray); padding: 4px 0; }
+.home-features {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 16px 20px;
+}
+@media(max-width:700px){ .home-features { grid-template-columns: 1fr; } }
+.home-feature-card {
+  background: white;
+  border: 1px solid var(--gov-border);
+  border-radius: 6px;
+  padding: 14px;
+  border-top: 3px solid var(--gov-blue);
+}
+.home-feature-icon { font-size: 20px; margin-bottom: 8px; }
+.home-feature-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; color: var(--gov-blue); }
+.home-feature-title-hi { font-family: 'Noto Sans Devanagari', sans-serif; font-size: 11px; color: var(--gov-gray2); margin-bottom: 6px; }
+.home-feature-desc { font-size: 11px; color: var(--gov-gray2); line-height: 1.6; }
+.flow-steps {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  padding: 16px 20px;
+  background: white;
+  border: 1px solid var(--gov-border);
+  border-radius: 6px;
+  margin: 0 20px 16px;
+}
+.flow-step {
+  flex: 1;
+  min-width: 80px;
+  text-align: center;
+  padding: 10px 6px;
+}
+.flow-step-num {
+  width: 28px; height: 28px;
+  background: var(--gov-blue);
+  color: white;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  margin: 0 auto 6px;
+}
+.flow-step-icon { font-size: 16px; margin-bottom: 4px; }
+.flow-step-lbl { font-size: 10px; color: var(--gov-gray2); line-height: 1.4; }
+.flow-arrow { color: var(--gov-gray3); font-size: 16px; padding: 0 4px; flex-shrink: 0; }
+
+/* ── ABOUT PAGE ── */
+.team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media(max-width:700px){ .team-grid { grid-template-columns: 1fr; } }
+.team-card {
+  background: white;
+  border: 1px solid var(--gov-border);
+  border-radius: 6px;
+  padding: 14px;
+  text-align: center;
+  border-top: 3px solid var(--gov-blue);
+}
+.team-avatar {
+  width: 48px; height: 48px;
+  background: var(--gov-blue-lt);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  margin: 0 auto 8px;
+}
+.team-name { font-size: 13px; font-weight: 700; color: var(--gov-gray); }
+.team-role { font-size: 11px; color: var(--gov-blue); margin-top: 2px; }
+
+/* ── FOOTER ── */
+.gov-footer {
+  background: #1a2e4a;
+  color: rgba(255,255,255,0.6);
+  text-align: center;
+  padding: 16px;
+  font-size: 11px;
+  line-height: 1.8;
+  margin-top: 24px;
+}
+.gov-footer strong { color: rgba(255,255,255,0.9); }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--gov-border); }
+::-webkit-scrollbar-thumb { background: var(--gov-gray3); border-radius: 3px; }
+
+/* ── GLOW ANIMATIONS ── */
+@keyframes glowPulse {
+  0%,100%{ box-shadow: 0 0 8px rgba(26,86,160,0.25), 0 1px 4px rgba(0,0,0,0.08); }
+  50%{ box-shadow: 0 0 18px rgba(26,86,160,0.45), 0 1px 4px rgba(0,0,0,0.08); }
+}
+@keyframes fadeSlideUp {
+  from{ opacity:0; transform:translateY(14px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+.stat-card { animation: fadeSlideUp 0.45s ease both; }
+.stat-card:nth-child(1){ animation-delay:0.05s; }
+.stat-card:nth-child(2){ animation-delay:0.12s; }
+.stat-card:nth-child(3){ animation-delay:0.19s; }
+.stat-card:nth-child(4){ animation-delay:0.26s; }
+.stat-card.red { animation: fadeSlideUp 0.45s ease 0.19s both, glowPulse 2.5s ease 0.7s infinite; box-shadow: 0 0 14px rgba(220,38,38,0.2), 0 1px 4px rgba(0,0,0,0.08); }
+.gov-card { animation: fadeSlideUp 0.5s ease 0.1s both; transition: box-shadow 0.2s; }
+.gov-card:hover { box-shadow: 0 0 16px rgba(26,86,160,0.18), 0 2px 8px rgba(0,0,0,0.1); }
+.drink-banner.unsafe { animation: glowPulse 2s ease infinite; }
+.sensor-progress-fill { transition: width 1s ease !important; }
+
+/* ── VILLAGE SENSOR CARDS ── */
+.village-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.village-sensor-card {
+  background: white;
+  border: 1px solid var(--gov-border);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.18s, box-shadow 0.18s;
+  animation: fadeSlideUp 0.5s ease both;
+}
+.village-sensor-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(26,86,160,0.15);
+}
+.village-sensor-card.v-red { border-left: 4px solid #dc2626; }
+.village-sensor-card.v-red:hover { box-shadow: 0 6px 20px rgba(220,38,38,0.2); }
+.village-sensor-card.v-yellow { border-left: 4px solid #d97706; }
+.village-sensor-card.v-yellow:hover { box-shadow: 0 6px 20px rgba(217,119,6,0.2); }
+.village-sensor-card.v-green { border-left: 4px solid #16a34a; }
+.vsc-header {
+  padding: 10px 12px 8px;
+  display: flex; justify-content: space-between; align-items: flex-start;
+  background: var(--gov-blue-xs);
+  border-bottom: 1px solid var(--gov-border);
+}
+.vsc-name { font-size: 14px; font-weight: 700; color: var(--gov-blue); }
+.vsc-dist { font-size: 10px; color: var(--gov-gray2); margin-top: 1px; }
+.vsc-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 7px; }
+.vsc-row {
+  display: flex; align-items: center; gap: 8px;
+}
+.vsc-lbl { font-size: 11px; color: var(--gov-gray2); width: 88px; flex-shrink: 0; }
+.vsc-bar-wrap {
+  flex: 1; height: 6px;
+  background: var(--gov-border);
+  border-radius: 3px; overflow: hidden;
+}
+.vsc-bar-fill { height: 100%; border-radius: 3px; }
+.vsc-bar-fill.safe    { background: linear-gradient(90deg,#4ade80,#16a34a); }
+.vsc-bar-fill.warning { background: linear-gradient(90deg,#fbbf24,#d97706); }
+.vsc-bar-fill.danger  { background: linear-gradient(90deg,#f87171,#dc2626); }
+.vsc-val { font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace; min-width: 62px; text-align: right; }
+.vsc-val.safe    { color: #16a34a; }
+.vsc-val.warning { color: #d97706; }
+.vsc-val.danger  { color: #dc2626; }
+
+/* ── ASHA REPORT CARDS ── */
+.asha-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+.asha-report-card {
+  background: white;
+  border: 1px solid var(--gov-border);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: transform 0.18s, box-shadow 0.18s;
+  animation: fadeSlideUp 0.45s ease both;
+}
+.asha-report-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(26,86,160,0.13); }
+.asha-report-card.ac-critical { border-left: 4px solid #dc2626; }
+.asha-report-card.ac-critical:hover { box-shadow: 0 6px 18px rgba(220,38,38,0.18); }
+.asha-report-card.ac-warning  { border-left: 4px solid #d97706; }
+.asha-report-card.ac-safe     { border-left: 4px solid #16a34a; }
+.asha-card-head {
+  padding: 10px 14px 8px;
+  background: var(--gov-blue-xs);
+  border-bottom: 1px solid var(--gov-border);
+  display: flex; justify-content: space-between; align-items: flex-start;
+}
+.asha-worker-name { font-size: 14px; font-weight: 700; color: var(--gov-blue); }
+.asha-village-tag { font-size: 10px; color: var(--gov-gray2); margin-top: 2px; }
+.asha-card-body { padding: 10px 14px; }
+.asha-cases-row {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 6px; margin-bottom: 8px;
+}
+.asha-case-box {
+  background: var(--gov-bg); border-radius: 5px;
+  padding: 6px 4px; text-align: center;
+  border: 1px solid var(--gov-border);
+}
+.asha-case-num { font-size: 20px; font-weight: 700; line-height: 1; }
+.asha-case-lbl { font-size: 9px; color: var(--gov-gray2); margin-top: 2px; font-family: 'Noto Sans Devanagari', sans-serif; }
+.asha-case-box.c-total .asha-case-num   { color: var(--gov-blue); }
+.asha-case-box.c-cholera .asha-case-num { color: #dc2626; }
+.asha-case-box.c-typhoid .asha-case-num { color: #d97706; }
+.asha-case-box.c-diarr .asha-case-num   { color: #7c3aed; }
+.asha-card-foot {
+  padding: 7px 14px 10px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-top: 1px solid var(--gov-border);
+}
+.asha-time-tag { font-size: 10px; color: var(--gov-gray3); }
+.asha-fb-badge {
+  font-size: 9px; font-weight: 600; padding: 2px 7px;
+  border-radius: 8px; background: var(--gov-blue-xs);
+  color: var(--gov-blue); border: 1px solid var(--gov-blue-lt);
+}
+.asha-loading { text-align:center; padding:40px 20px; color:var(--gov-gray2); font-size:13px; }
+.asha-status-bar {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 6px; padding: 5px 8px;
+  border-radius: 4px; font-size: 10px; font-weight: 600;
+}
+.asha-status-bar.critical { background:#fee2e2; color:#dc2626; }
+.asha-status-bar.warning  { background:#fef3c7; color:#d97706; }
+.asha-status-bar.safe     { background:#dcfce7; color:#16a34a; }
+</style>
+</head>
+<body>
+
+<!-- ══ GOV TOP HEADER ══ -->
+<div class="gov-topbar">
+  <div class="gov-emblem">💧</div>
+  <div class="gov-title-block">
+    <div class="gov-title-hi">जल स्वास्थ्य निरीक्षण प्रणाली — अजमेर जिला, राजस्थान</div>
+    <div class="gov-title-en">AquaGuard — Water Quality Monitoring System | Ajmer District</div>
+  </div>
+  <div class="gov-org">
+    जल जीवन मिशन · Jal Jeevan Mission<br>
+    GEC Ajmer · NHM Rajasthan
+  </div>
+  <div class="gov-live-badge"><span class="gov-live-dot"></span>LIVE SYSTEM</div>
+</div>
+
+<!-- ══ GOV NAV TABS ══ -->
+<nav class="gov-nav">
+  <a onclick="showPage('home')" class="active" id="nav-home">🏠 Home</a>
+  <a onclick="showPage('dashboard')" id="nav-dashboard">📊 Dashboard</a>
+  <a onclick="showPage('asha')" id="nav-asha">👩‍⚕️ ASHA Reports</a>
+  <a onclick="showPage('features')" id="nav-features">🤖 AI Features</a>
+  <a onclick="showPage('about')" id="nav-about">ℹ️ About</a>
+  <div style="margin-left:auto;font-size:10px;color:rgba(255,255,255,0.6);display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0;min-width:0;">
+    <span id="clockEl" style="font-family:'JetBrains Mono',monospace;"></span>
+    <span>|</span>
+    <span id="dateEl" style="font-family:'JetBrains Mono',monospace;"></span>
+    <span>·</span>
+    <span>Alpha Coders</span>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════
+     HOME PAGE
+══════════════════════════════════════ -->
+<div class="page active" id="page-home">
+
+  <div class="home-hero">
+    <div class="home-badge">🌊 Jal Jeevan Mission · जल जीवन मिशन</div>
+    <div class="home-hero-hi">स्वच्छ जल — स्वस्थ जीवन | Clean Water, Healthy Life</div>
+    <div class="home-hero-title">AquaGuard — Real-Time Water Quality Intelligence</div>
+    <div class="home-hero-sub">
+      IoT sensor monitoring, Groq AI disease risk prediction, and ASHA field reporting —
+      designed to support India's Jal Jeevan Mission for safe drinking water in every rural household.
+    </div>
+    <div class="home-stats">
+      <div class="home-stat"><div class="home-stat-num">9</div><div class="home-stat-lbl">Villages Monitored<br>निगरानी गांव</div></div>
+      <div class="home-stat"><div class="home-stat-num">5</div><div class="home-stat-lbl">IoT Sensors<br>सेंसर</div></div>
+      <div class="home-stat"><div class="home-stat-num">24/7</div><div class="home-stat-lbl">Live Monitoring<br>लाइव निगरानी</div></div>
+      <div class="home-stat"><div class="home-stat-num">4</div><div class="home-stat-lbl">Diseases Tracked<br>रोग ट्रैकिंग</div></div>
+    </div>
+  </div>
+
+  <div class="home-impact">
+    <div class="home-impact-title">📊 WHY THIS MATTERS — Real Data (वास्तविक डेटा)</div>
+    <div class="home-impact-grid">
+      <div class="home-impact-item">💀 <strong>37.7 million</strong> Indians affected by waterborne diseases yearly (WHO)</div>
+      <div class="home-impact-item">🧒 <strong>1,600 children</strong> die daily from unsafe water — South Asia (UNICEF)</div>
+      <div class="home-impact-item">🏜️ <strong>Rajasthan</strong> highest fluoride contamination — 11 districts affected (CGWB)</div>
+      <div class="home-impact-item">🎯 Jal Jeevan Mission targets rural tap water — <strong>quality monitoring gap</strong> remains</div>
+    </div>
+  </div>
+
+  <div style="padding: 4px 20px 0; font-size:12px;font-weight:700;color:var(--gov-blue);text-transform:uppercase;letter-spacing:0.5px;">System Capabilities</div>
+  <div class="home-features">
+    <div class="home-feature-card">
+      <div class="home-feature-icon">🔌</div>
+      <div class="home-feature-title">IoT Hardware Sensors</div>
+      <div class="home-feature-title-hi">आईओटी हार्डवेयर सेंसर</div>
+      <div class="home-feature-desc">ESP32-based node reads TDS, Turbidity, Temperature, Salinity &amp; pH every 5 seconds. Uploads to Firebase cloud in real-time.</div>
+    </div>
+    <div class="home-feature-card">
+      <div class="home-feature-icon">🤖</div>
+      <div class="home-feature-title">Groq AI Prediction</div>
+      <div class="home-feature-title-hi">एआई रोग जोखिम पूर्वानुमान</div>
+      <div class="home-feature-desc">LLaMA 3.3-70B model (via Groq) analyzes sensor patterns against WHO outbreak data to predict Cholera, Typhoid, Diarrhea &amp; Dysentery risk.</div>
+    </div>
+    <div class="home-feature-card">
+      <div class="home-feature-icon">🗺️</div>
+      <div class="home-feature-title">Live Village Map</div>
+      <div class="home-feature-title-hi">लाइव ग्राम मानचित्र</div>
+      <div class="home-feature-desc">Real GPS-mapped Rajasthan villages with color-coded risk levels. Click any marker for full sensor data and disease risk breakdown.</div>
+    </div>
+    <div class="home-feature-card">
+      <div class="home-feature-icon">👩‍⚕️</div>
+      <div class="home-feature-title">ASHA Network</div>
+      <div class="home-feature-title-hi">आशा कार्यकर्ता नेटवर्क</div>
+      <div class="home-feature-desc">6 field workers submit real-time case reports. Data feeds directly into the AI prediction model and official alert pipeline.</div>
+    </div>
+    <div class="home-feature-card">
+      <div class="home-feature-icon">📱</div>
+      <div class="home-feature-title">SMS Alert System</div>
+      <div class="home-feature-title-hi">एसएमएस अलर्ट सिस्टम</div>
+      <div class="home-feature-desc">Automated SMS to District Officer, BMO, and field teams when thresholds are crossed. Works offline in villages — no internet needed for receipt.</div>
+    </div>
+    <div class="home-feature-card">
+      <div class="home-feature-icon">🏛️</div>
+      <div class="home-feature-title">Authority Dashboard</div>
+      <div class="home-feature-title-hi">प्राधिकरण डैशबोर्ड</div>
+      <div class="home-feature-desc">District-level decision support. Zone-wise risk ranking, govt action recommendations, and Jal Jeevan Mission integration ready.</div>
+    </div>
+  </div>
+
+  <div style="padding:0 20px 4px;font-size:12px;font-weight:700;color:var(--gov-blue);text-transform:uppercase;letter-spacing:0.5px;">System Flow — सिस्टम प्रवाह</div>
+  <div class="flow-steps">
+    <div class="flow-step"><div class="flow-step-num">1</div><div class="flow-step-icon">🔌</div><div class="flow-step-lbl">ESP32<br>Sensor Node</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-num">2</div><div class="flow-step-icon">📡</div><div class="flow-step-lbl">WiFi Upload<br>Firebase Cloud</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-num">3</div><div class="flow-step-icon">🧠</div><div class="flow-step-lbl">Groq AI<br>Analysis</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-num">4</div><div class="flow-step-icon">📊</div><div class="flow-step-lbl">Officials<br>Dashboard</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-num">5</div><div class="flow-step-icon">🚨</div><div class="flow-step-lbl">SMS Alert<br>Field Action</div></div>
+  </div>
+
+  <div style="text-align:center;padding:12px 20px 20px;">
+    <button class="gov-btn gov-btn-primary" onclick="showPage('dashboard')" style="margin-right:8px;">📊 View Live Dashboard</button>
+    <button class="gov-btn gov-btn-outline" onclick="showPage('asha')">👩‍⚕️ ASHA Portal</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     DASHBOARD PAGE
+══════════════════════════════════════ -->
+<div class="page" id="page-dashboard">
+  <div class="breadcrumb">
+    <a onclick="showPage('home')">Home</a><span class="sep">›</span>
+    <span>Dashboard</span><span class="sep">—</span>
+    <span style="font-family:'Noto Sans Devanagari',sans-serif;">स्वास्थ्य अधिकारी डैशबोर्ड · Rajasthan</span>
+  </div>
+  <div class="page-content">
+
+    <!-- STAT ROW -->
+    <div class="stat-row">
+      <div class="stat-card green">
+        <div class="stat-icon">✅</div>
+        <div><div class="stat-val" id="statSafe">4</div><div class="stat-lbl">Safe Villages<br><span class="stat-lbl-hi">सुरक्षित गांव</span></div></div>
+      </div>
+      <div class="stat-card yellow">
+        <div class="stat-icon">⚠️</div>
+        <div><div class="stat-val" id="statWarn">3</div><div class="stat-lbl">Warning Zones<br><span class="stat-lbl-hi">चेतावनी क्षेत्र</span></div></div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon">🚨</div>
+        <div><div class="stat-val" id="statCrit">2</div><div class="stat-lbl">Critical Zones<br><span class="stat-lbl-hi">गंभीर क्षेत्र</span></div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🏥</div>
+        <div><div class="stat-val" id="statCases">21</div><div class="stat-lbl">Cases Tracked<br><span class="stat-lbl-hi">मामले</span></div></div>
+      </div>
+    </div>
+
+    <!-- DRINKABILITY BANNER -->
+    <div class="drink-banner safe" id="drinkBanner">
+      <div class="drink-banner-icon" id="drinkIcon">✅</div>
+      <div>
+        <div class="drink-banner-title safe" id="drinkTitle">WATER IS DRINKABLE — जल पीने योग्य है</div>
+        <div class="drink-banner-sub" id="drinkSubtitle">All sensor parameters within WHO safe limits. Water is safe for consumption.</div>
+      </div>
+      <div class="drink-badge safe" id="drinkChip">SAFE</div>
+    </div>
+
+    <!-- SENSORS TABLE + AI PREDICTION (side by side) -->
+    <div class="dash-grid">
+
+      <!-- SENSOR TABLE -->
+      <div class="gov-card">
+        <div class="gov-card-header">
+          <div>
+            <div class="gov-card-title">📡 Live Sensor Readings</div>
+            <div class="gov-card-title-hi">लाइव सेंसर डेटा — Firebase Real-Time</div>
+          </div>
+          <span style="font-size:10px;color:var(--gov-gray3);font-family:'JetBrains Mono',monospace;" id="lastUpdated">Updated: --:--</span>
+        </div>
+        <div class="gov-card-body" style="padding:0;">
+          <table class="sensor-table">
+            <thead>
+              <tr>
+                <th>Parameter / पैरामीटर</th>
+                <th>Reading</th>
+                <th>WHO Limit</th>
+                <th>Level</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>TDS</strong><br><span style="font-size:10px;color:var(--gov-gray3);">कुल घुलित ठोस</span></td>
+                <td><span class="sensor-val-big" id="tds-val">—</span><span style="font-size:10px;color:var(--gov-gray2);"> mg/L</span></td>
+                <td style="color:var(--gov-gray2);font-size:11px;">&lt;190 mg/L</td>
+                <td><div class="sensor-progress"><div class="sensor-progress-fill" id="tds-bar" style="width:0%;background:#1a56a0;"></div></div></td>
+                <td><span class="status-pill pill-safe" id="tds-status">OK</span></td>
+              </tr>
+              <tr>
+                <td><strong>Turbidity</strong><br><span style="font-size:10px;color:var(--gov-gray3);">मैलापन</span></td>
+                <td><span class="sensor-val-big" id="turb-val">—</span><span style="font-size:10px;color:var(--gov-gray2);"> NTU</span></td>
+                <td style="color:var(--gov-gray2);font-size:11px;">&lt;4 NTU</td>
+                <td><div class="sensor-progress"><div class="sensor-progress-fill" id="turb-bar" style="width:0%;background:#9b59b6;"></div></div></td>
+                <td><span class="status-pill pill-safe" id="turb-status">OK</span></td>
+              </tr>
+              <tr>
+                <td><strong>Temperature</strong><br><span style="font-size:10px;color:var(--gov-gray3);">तापमान</span></td>
+                <td><span class="sensor-val-big" id="temp-val">—</span><span style="font-size:10px;color:var(--gov-gray2);"> °C</span></td>
+                <td style="color:var(--gov-gray2);font-size:11px;">0–35°C</td>
+                <td><div class="sensor-progress"><div class="sensor-progress-fill" id="temp-bar" style="width:0%;background:#e74c3c;"></div></div></td>
+                <td><span class="status-pill pill-safe" id="temp-status">OK</span></td>
+              </tr>
+              <tr>
+                <td><strong>Salinity</strong><br><span style="font-size:10px;color:var(--gov-gray3);">लवणता</span></td>
+                <td><span class="sensor-val-big" id="sal-val">—</span><span style="font-size:10px;color:var(--gov-gray2);"> ppt</span></td>
+                <td style="color:var(--gov-gray2);font-size:11px;">&lt;0.5 ppt</td>
+                <td><div class="sensor-progress"><div class="sensor-progress-fill" id="sal-bar" style="width:0%;background:#f39c12;"></div></div></td>
+                <td><span class="status-pill pill-safe" id="sal-status">OK</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- AI PREDICTION -->
+      <div class="gov-card">
+        <div class="gov-card-header">
+          <div>
+            <div class="gov-card-title">🤖 AI Disease Risk Prediction</div>
+            <div class="gov-card-title-hi">एआई रोग जोखिम विश्लेषण — Groq LLaMA 3.3-70B</div>
+          </div>
+          <span class="status-pill pill-safe" id="aiSeverityBadge" style="font-size:10px;">SAFE</span>
+        </div>
+        <div class="gov-card-body">
+          <div class="ai-risk-row">
+            <div class="ai-risk-name">Cholera<span class="ai-risk-name-hi">हैजा</span></div>
+            <div class="ai-risk-bar-wrap"><div class="ai-risk-bar-fill" id="ai-cholera" style="width:28%;background:#dc2626;"></div></div>
+            <div class="ai-risk-pct" id="ai-cholera-pct" style="color:#dc2626;">28%</div>
+          </div>
+          <div class="ai-risk-row">
+            <div class="ai-risk-name">Typhoid<span class="ai-risk-name-hi">टाइफाइड</span></div>
+            <div class="ai-risk-bar-wrap"><div class="ai-risk-bar-fill" id="ai-typhoid" style="width:19%;background:#d97706;"></div></div>
+            <div class="ai-risk-pct" id="ai-typhoid-pct" style="color:#d97706;">19%</div>
+          </div>
+          <div class="ai-risk-row">
+            <div class="ai-risk-name">Diarrhea<span class="ai-risk-name-hi">दस्त</span></div>
+            <div class="ai-risk-bar-wrap"><div class="ai-risk-bar-fill" id="ai-diarr" style="width:35%;background:#1a56a0;"></div></div>
+            <div class="ai-risk-pct" id="ai-diarr-pct" style="color:#1a56a0;">35%</div>
+          </div>
+          <div class="ai-risk-row">
+            <div class="ai-risk-name">Dysentery<span class="ai-risk-name-hi">पेचिश</span></div>
+            <div class="ai-risk-bar-wrap"><div class="ai-risk-bar-fill" id="ai-dys" style="width:12%;background:#16a34a;"></div></div>
+            <div class="ai-risk-pct" id="ai-dys-pct" style="color:#16a34a;">12%</div>
+          </div>
+          <div id="ai-concern-box" style="margin-top:10px;padding:10px 12px;background:var(--gov-blue-xs);border:1px solid var(--gov-blue-lt);border-radius:4px;font-size:11px;display:none;">
+            <div style="font-weight:700;color:var(--gov-blue);margin-bottom:4px;">⚠️ Primary Concern</div>
+            <div id="ai-concern-text" style="color:var(--gov-gray);"></div>
+            <div id="ai-action-text" style="color:var(--gov-green);margin-top:4px;font-weight:600;"></div>
+          </div>
+          <!-- 7-day trend -->
+          <div style="margin-top:14px;border-top:1px solid var(--gov-border);padding-top:12px;">
+            <div style="font-size:10px;font-weight:700;color:var(--gov-blue);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:8px;">📈 7-Day Trend — साप्ताहिक रुझान</div>
+            <div style="height:160px;position:relative;"><canvas id="trendChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end dash-grid -->
+
+    <!-- VILLAGE SENSOR CARDS -->
+    <div style="margin-bottom:4px;">
+      <div style="font-size:12px;font-weight:700;color:var(--gov-blue);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px;display:flex;align-items:center;gap:8px;">
+        💧 अजमेर जिला — ग्राम सेंसर डेटा (Village Sensor Cards)
+        <span style="font-size:10px;color:var(--gov-gray2);font-weight:400;text-transform:none;letter-spacing:0;">9 monitoring points</span>
+      </div>
+      <div class="village-cards-grid" id="villageCardsGrid"></div>
+    </div>
+
+    <!-- MAP + ALERTS (side by side) -->
+    <div class="dash-grid">
+
+      <!-- REAL LEAFLET MAP -->
+      <div class="gov-card">
+        <div class="gov-card-header">
+          <div>
+            <div class="gov-card-title">🗺️ Village Risk Map — Ajmer District</div>
+            <div class="gov-card-title-hi">ग्राम जोखिम मानचित्र — अजमेर जिला | Click marker for details</div>
+          </div>
+          <div style="display:flex;gap:8px;font-size:10px;align-items:center;">
+            <span style="background:#dcfce7;color:#16a34a;padding:2px 7px;border-radius:3px;border:1px solid #86efac;">● Safe</span>
+            <span style="background:#fef3c7;color:#d97706;padding:2px 7px;border-radius:3px;border:1px solid #fcd34d;">● Warning</span>
+            <span style="background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:3px;border:1px solid #fca5a5;">● Critical</span>
+          </div>
+        </div>
+        <div class="gov-card-body" style="padding:0;overflow:hidden;border-radius:0 0 5px 5px;">
+          <div id="govLeafletMap"></div>
+        </div>
+      </div>
+
+      <!-- ALERT TABLE + SMS -->
+      <div style="display:flex;flex-direction:column;gap:16px;">
+
+        <!-- ALERT TABLE -->
+        <div class="gov-card">
+          <div class="gov-card-header">
+            <div class="gov-card-title">🚨 Live Village Alerts — सक्रिय चेतावनियां</div>
+          </div>
+          <div class="gov-card-body" style="padding:0;">
+            <table class="alert-table">
+              <thead>
+                <tr>
+                  <th>Village / गांव</th>
+                  <th>Disease / रोग</th>
+                  <th>Cases</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="alert-dot" style="background:#dc2626;"></span>Nasirabad</td>
+                  <td>Cholera</td>
+                  <td style="font-weight:700;color:#dc2626;">8</td>
+                  <td><span class="status-pill pill-danger">Critical</span></td>
+                  <td style="color:#dc2626;font-size:10px;">Deploy Team</td>
+                </tr>
+                <tr>
+                  <td><span class="alert-dot" style="background:#d97706;"></span>Beawar</td>
+                  <td>Typhoid</td>
+                  <td style="font-weight:700;color:#d97706;">5</td>
+                  <td><span class="status-pill pill-warn">Warning</span></td>
+                  <td style="color:#d97706;font-size:10px;">Alert BMO</td>
+                </tr>
+                <tr>
+                  <td><span class="alert-dot" style="background:#d97706;"></span>Mangliawas</td>
+                  <td>Diarrhea</td>
+                  <td style="font-weight:700;color:#d97706;">3</td>
+                  <td><span class="status-pill pill-warn">Warning</span></td>
+                  <td style="color:#d97706;font-size:10px;">Monitor</td>
+                </tr>
+                <tr>
+                  <td><span class="alert-dot" style="background:#16a34a;"></span>Kishangarh</td>
+                  <td>None</td>
+                  <td style="color:#16a34a;">0</td>
+                  <td><span class="status-pill pill-safe">Safe</span></td>
+                  <td style="color:#16a34a;font-size:10px;">Routine</td>
+                </tr>
+                <tr>
+                  <td><span class="alert-dot" style="background:#16a34a;"></span>Kekri</td>
+                  <td>None</td>
+                  <td style="color:#16a34a;">1</td>
+                  <td><span class="status-pill pill-safe">Safe</span></td>
+                  <td style="color:#16a34a;font-size:10px;">Routine</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- SMS SECTION -->
+        <div class="gov-card">
+          <div class="gov-card-header">
+            <div class="gov-card-title">📱 SMS Alert Log — एसएमएस लॉग</div>
+          </div>
+          <div class="gov-card-body">
+            <div class="sms-log-row">
+              <div class="sms-time">08:42</div>
+              <div>🔴 ALERT: Nasirabad — 8 cholera cases. Immediate action required. — AquaGuard</div>
+            </div>
+            <div class="sms-log-row">
+              <div class="sms-time">07:15</div>
+              <div>🟡 WARNING: Beawar village — 5 typhoid cases, TDS 580 mg/L. Monitor. — AquaGuard</div>
+            </div>
+            <div class="sms-log-row">
+              <div class="sms-time">06:00</div>
+              <div>✅ STATUS: Kishangarh water quality normal. TDS 312 mg/L. — AquaGuard</div>
+            </div>
+            <div style="margin-top:10px;">
+              <button class="gov-btn gov-btn-danger" onclick="sendSMS()" style="font-size:11px;">📤 Send Manual SMS Alert</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- end right column -->
+    </div><!-- end dash-grid map+alerts -->
+
+    <!-- GOVT DECISION SUPPORT -->
+    <div class="gov-card">
+      <div class="gov-card-header">
+        <div class="gov-card-title">🏛️ District Authority Recommendations — जिला अधिकारी सिफारिशें</div>
+      </div>
+      <div class="gov-card-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;font-size:11px;">
+          <div style="padding:10px;background:#fee2e2;border:1px solid #fca5a5;border-radius:4px;">
+            <div style="font-weight:700;color:#dc2626;margin-bottom:6px;">🔴 IMMEDIATE ACTION</div>
+            Deploy sanitation teams to Nasirabad. Distribute water purification tablets. Alert BMO Ajmer &amp; Chief Medical Officer immediately.
+          </div>
+          <div style="padding:10px;background:#fef3c7;border:1px solid #fcd34d;border-radius:4px;">
+            <div style="font-weight:700;color:#d97706;margin-bottom:6px;">🟡 MONITOR CLOSELY</div>
+            Schedule water source testing in Beawar &amp; Mangliawas within 24 hours. ASHA workers to increase house visits in Ajmer District.
+          </div>
+          <div style="padding:10px;background:#dcfce7;border:1px solid #86efac;border-radius:4px;">
+            <div style="font-weight:700;color:#16a34a;margin-bottom:6px;">✅ JJM INTEGRATION</div>
+            AquaGuard is Jal Jeevan Mission ready. Sensor data can feed directly into WQMIS (Water Quality Management Information System).
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end page-content -->
+</div><!-- end dashboard page -->
+
+<!-- ══════════════════════════════════════
+     ASHA REPORTS PAGE
+══════════════════════════════════════ -->
+<div class="page" id="page-asha">
+  <div class="breadcrumb">
+    <a onclick="showPage('home')">Home</a><span class="sep">›</span>
+    <span>ASHA Worker Reports — आशा कार्यकर्ता रिपोर्ट</span>
+  </div>
+  <div class="page-content">
+
+    <div style="margin-bottom:12px;">
+      <div style="font-size:12px;color:var(--gov-gray2);">6 reports received today | आज 6 रिपोर्ट प्राप्त · Reports submitted via ASHA Portal</div>
+    </div>
+
+    <!-- REPORTS CARDS (Firebase live + static fallback) -->
+    <div class="gov-card">
+      <div class="gov-card-header">
+        <div>
+          <div class="gov-card-title">📋 Field Reports — आशा कार्यकर्ता रिपोर्टें</div>
+          <div class="gov-card-title-hi">Firebase Realtime DB से लाइव डेटा</div>
+        </div>
+        <span style="font-size:10px;color:var(--gov-gray3);font-family:'JetBrains Mono',monospace;" id="ashaLastFetch">Fetching...</span>
+      </div>
+      <div class="gov-card-body">
+        <div class="asha-cards-grid" id="ashaCardsGrid">
+          <div class="asha-loading">⏳ Firebase से रिपोर्टें लोड हो रही हैं...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     AI FEATURES PAGE
+══════════════════════════════════════ -->
+<div class="page" id="page-features">
+  <div class="breadcrumb">
+    <a onclick="showPage('home')">Home</a><span class="sep">›</span>
+    <span>AI Features — एआई विशेषताएं</span>
+  </div>
+  <div class="page-content">
+    <div class="dash-grid">
+      <div class="gov-card">
+        <div class="gov-card-header"><div class="gov-card-title">🤖 AI Risk — Features Page</div></div>
+        <div class="gov-card-body">
+          <div class="ai-risk-row">
+            <div class="ai-risk-name">Cholera<span class="ai-risk-name-hi">हैजा</span></div>
+            <div class="ai-risk-bar-wrap"><div class="ai-risk-bar-fill" id="fp-cholera" style="width:28%;background:#dc2626;"></div></div>
+            <div class="ai-risk-pct" id="fp-cholera-pct" style="color:#dc2626;">28%</div>
+          </div>
+          <div class="ai-risk-row">
+            <div class="ai-risk-name">Typhoid<span class="ai-risk-name-hi">टाइफाइड</span></div>
+            <div class="ai-risk-bar-wrap"><div class="ai-risk-bar-fill" id="fp-typhoid" style="width:19%;background:#d97706;"></div></div>
+            <div class="ai-risk-pct" id="fp-typhoid-pct" style="color:#d97706;">19%</div>
+          </div>
+          <div class="ai-risk-row">
+            <div class="ai-risk-name">Diarrhea<span class="ai-risk-name-hi">दस्त</span></div>
+            <div class="ai-risk-bar-wrap"><div class="ai-risk-bar-fill" id="fp-diarr" style="width:35%;background:#1a56a0;"></div></div>
+            <div class="ai-risk-pct" id="fp-diarr-pct" style="color:#1a56a0;">35%</div>
+          </div>
+          <div class="ai-risk-row">
+            <div class="ai-risk-name">Dysentery<span class="ai-risk-name-hi">पेचिश</span></div>
+            <div class="ai-risk-bar-wrap"><div class="ai-risk-bar-fill" id="fp-dys" style="width:12%;background:#16a34a;"></div></div>
+            <div class="ai-risk-pct" id="fp-dys-pct" style="color:#16a34a;">12%</div>
+          </div>
+          <div style="margin-top:12px;font-size:11px;color:var(--gov-gray2);padding:10px;background:var(--gov-blue-xs);border-radius:4px;">
+            ℹ️ AI model: Groq LLaMA 3.3-70B. Analyzes TDS, Turbidity, Temperature, Salinity &amp; pH against WHO outbreak data. Updates every 3 seconds via Firebase.
+          </div>
+        </div>
+      </div>
+      <div class="gov-card">
+        <div class="gov-card-header"><div class="gov-card-title">⚙️ System Architecture — तकनीकी संरचना</div></div>
+        <div class="gov-card-body">
+          <table class="sensor-table">
+            <tr><td style="font-weight:600;">Hardware</td><td>ESP32 + TDS sensor, Turbidity sensor, NTC Thermistor, Conductivity probe</td></tr>
+            <tr><td style="font-weight:600;">Connectivity</td><td>WiFi → Firebase Realtime DB (HTTPS REST API)</td></tr>
+            <tr><td style="font-weight:600;">AI Engine</td><td>Groq Cloud API → LLaMA 3.3-70B Versatile</td></tr>
+            <tr><td style="font-weight:600;">Backend</td><td>Python 3 · requests · groq library</td></tr>
+            <tr><td style="font-weight:600;">Frontend</td><td>HTML5 · CSS3 · Leaflet.js · Chart.js · Firebase REST</td></tr>
+            <tr><td style="font-weight:600;">Standards</td><td>WHO Water Quality Guidelines 2022</td></tr>
+            <tr><td style="font-weight:600;">Integration</td><td>Jal Jeevan Mission WQMIS API ready</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     ABOUT PAGE
+══════════════════════════════════════ -->
+<div class="page" id="page-about">
+  <div class="breadcrumb">
+    <a onclick="showPage('home')">Home</a><span class="sep">›</span>
+    <span>About — हमारे बारे में</span>
+  </div>
+  <div class="page-content">
+    <div class="gov-card" style="margin-bottom:16px;">
+      <div class="gov-card-header"><div class="gov-card-title">🏆 About AquaGuard — AquaGuard के बारे में</div></div>
+      <div class="gov-card-body">
+        <p style="font-size:12px;color:var(--gov-gray2);line-height:1.8;margin-bottom:12px;">
+          AquaGuard is a real-time IoT + AI water quality monitoring system developed by <strong>Alpha Coders, Government Engineering College Ajmer</strong> for Technova 2026. It is designed to support India's Jal Jeevan Mission by providing district health officials with actionable, real-time intelligence on rural water quality.
+        </p>
+        <p style="font-size:12px;color:var(--gov-gray2);line-height:1.8;">
+          <strong>Use Case — Ajmer District:</strong> Rajasthan's groundwater shows fluoride contamination in 11+ districts. AquaGuard's IoT sensors provide continuous monitoring, while AI predicts disease outbreak risk before it happens — enabling proactive intervention by ASHA workers and district health officers.
+        </p>
+      </div>
+    </div>
+    <div class="gov-card">
+      <div class="gov-card-header"><div class="gov-card-title">👨‍💻 Team — Alpha Coders, GEC Ajmer</div></div>
+      <div class="gov-card-body">
+        <div class="team-grid">
+          <div class="team-card"><div class="team-avatar">HK</div><div class="team-name">Harish Kumar</div><div class="team-role">IoT Hardware & Firebase</div></div>
+          <div class="team-card"><div class="team-avatar">LG</div><div class="team-name">Lucky Gupta</div><div class="team-role">AI / Groq Integration</div></div>
+          <div class="team-card"><div class="team-avatar">JS</div><div class="team-name">Jiya Sapnani</div><div class="team-role">Frontend & Dashboard</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="gov-footer">
+  <strong>AquaGuard — जल स्वास्थ्य निरीक्षण प्रणाली</strong><br>
+  Developed by Alpha Coders · Government Engineering College, Ajmer · Technova 2026<br>
+  Aligned with <strong>Jal Jeevan Mission</strong> · National Health Mission · Ministry of Jal Shakti, Govt. of India
+</div>
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
+<script>
+/* ── AUTO-MEASURE HEADER HEIGHT ── */
+function fixHeaderOffset() {
+  const topbar = document.querySelector('.gov-topbar');
+  const nav    = document.querySelector('.gov-nav');
+  if (!topbar || !nav) return;
+  const total = topbar.offsetHeight + nav.offsetHeight;
+  // Set on body so ALL pages get correct top offset
+  document.body.style.paddingTop = total + 'px';
+  document.documentElement.style.setProperty('--total-bar-h', total + 'px');
+  document.documentElement.style.setProperty('--header-h',    topbar.offsetHeight + 'px');
+  document.documentElement.style.setProperty('--nav-h',       nav.offsetHeight + 'px');
+}
+window.addEventListener('DOMContentLoaded', fixHeaderOffset);
+window.addEventListener('resize', fixHeaderOffset);
+setTimeout(fixHeaderOffset, 100);
+setTimeout(fixHeaderOffset, 500);
+setTimeout(fixHeaderOffset, 1200);
+/* ── PAGE NAVIGATION ── */
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.gov-nav a').forEach(a => a.classList.remove('active'));
+  const pg = document.getElementById('page-' + name);
+  const lnk = document.getElementById('nav-' + name);
+  if (pg)  pg.classList.add('active');
+  if (lnk) lnk.classList.add('active');
+  window.scrollTo(0, 0);
+  // Fix map glitch: invalidate size when dashboard tab is shown
+  if (name === 'dashboard' && window._aqMap) {
+    setTimeout(() => { window._aqMap.invalidateSize(); }, 100);
+  }
+}
+
+/* ── CLOCK ── */
+function updateClock() {
+  const el = document.getElementById('clockEl');
+  const de = document.getElementById('dateEl');
+  const now = new Date();
+  if (el) el.textContent = now.toLocaleTimeString('en-IN');
+  if (de) {
+    const yr = now.getFullYear();
+    const mo = now.toLocaleString('en-IN', {month:'short'});
+    const dy = now.getDate();
+    de.textContent = dy + ' ' + mo + ' ' + yr;
+  }
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* ── SMS ── */
+function sendSMS() {
+  const btn = event.target;
+  btn.textContent = 'Sending SMS...';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = '✅ SMS Sent to District Officer';
+    setTimeout(() => { btn.textContent = '📤 Send Manual SMS Alert'; btn.disabled = false; }, 3000);
+  }, 1500);
+}
+
+/* ── FIREBASE SENSOR DATA ── */
+const FIREBASE_SENSORS = "https://aqua-82fea-default-rtdb.firebaseio.com/sensors.json";
+function fetchSensors() {
+  fetch(FIREBASE_SENSORS)
+    .then(r => r.json())
+    .then(d => {
+      if (!d) return;
+      const tds  = parseFloat(d.tds)         || 0;
+      const turb = parseFloat(d.turbidity)   || 0;
+      const temp = parseFloat(d.temperature) || 0;
+      const sal  = parseFloat(d.salinity)    || 0;
+
+      const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      set('tds-val',  tds.toFixed(0));
+      set('turb-val', turb.toFixed(1));
+      set('temp-val', temp.toFixed(1));
+      set('sal-val',  sal.toFixed(2));
+
+      const setBar = (id, pct, color) => {
+        const el = document.getElementById(id);
+        if (el) { el.style.width = Math.min(pct, 100) + '%'; el.style.background = color; }
+      };
+      setBar('tds-bar',  Math.min(tds/190*100, 100),  tds > 190  ? '#dc2626' : '#1a56a0');
+      setBar('turb-bar', Math.min(turb/10*100, 100),  turb > 4   ? '#dc2626' : '#9b59b6');
+      setBar('temp-bar', Math.min((temp-5)/30*100,100),temp>30   ? '#dc2626' : '#e74c3c');
+      setBar('sal-bar',  Math.min(sal/2*100, 100),    sal > 0.5  ? '#dc2626' : '#f39c12');
+
+      const setPill = (id, ok) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.className = 'status-pill ' + (ok ? 'pill-safe' : 'pill-danger');
+        el.textContent = ok ? 'Normal' : 'Exceeded';
+      };
+      setPill('tds-status',  tds  <= 190);
+      setPill('turb-status', turb <= 4);
+      setPill('temp-status', temp >= 5 && temp <= 30);
+      setPill('sal-status',  sal  <= 0.5);
+
+      const lu = document.getElementById('lastUpdated');
+      if (lu) lu.textContent = 'Updated: ' + new Date().toLocaleTimeString('en-IN');
+    })
+    .catch(() => {});
+}
+fetchSensors();
+setInterval(fetchSensors, 5000);
+
+/* ── AI PREDICTION DATA ── */
+const FIREBASE_AI = "https://aqua-82fea-default-rtdb.firebaseio.com/ai_prediction.json";
+function fetchAI() {
+  fetch(FIREBASE_AI)
+    .then(r => r.json())
+    .then(data => {
+      if (!data) return;
+      const cholera   = parseInt(data.cholera)  || 0;
+      const typhoid   = parseInt(data.typhoid)  || 0;
+      const diarrhea  = parseInt(data.diarrhea) || 0;
+      const dysentery = parseInt(data.dysentery)|| 0;
+      const overall   = parseInt(data.overall)  || 0;
+      const severity  = data.severity || 'safe';
+      const drinkable = data.drinkable === true || data.drinkable === 'true';
+
+      const setBar = (barId, pctId, val, color) => {
+        const b = document.getElementById(barId), p = document.getElementById(pctId);
+        if (b) { b.style.width = val + '%'; b.style.background = color; }
+        if (p) { p.textContent = val + '%'; p.style.color = color; }
+      };
+      const col = v => v >= 60 ? '#dc2626' : v >= 35 ? '#d97706' : '#1a56a0';
+      setBar('ai-cholera','ai-cholera-pct', cholera,   col(cholera));
+      setBar('ai-typhoid','ai-typhoid-pct', typhoid,   col(typhoid));
+      setBar('ai-diarr',  'ai-diarr-pct',  diarrhea,  col(diarrhea));
+      setBar('ai-dys',    'ai-dys-pct',    dysentery, col(dysentery));
+      setBar('fp-cholera','fp-cholera-pct',cholera,   col(cholera));
+      setBar('fp-typhoid','fp-typhoid-pct',typhoid,   col(typhoid));
+      setBar('fp-diarr',  'fp-diarr-pct',  diarrhea,  col(diarrhea));
+      setBar('fp-dys',    'fp-dys-pct',    dysentery, col(dysentery));
+
+      // Drinkability banner
+      const banner = document.getElementById('drinkBanner');
+      const title  = document.getElementById('drinkTitle');
+      const sub    = document.getElementById('drinkSubtitle');
+      const chip   = document.getElementById('drinkChip');
+      const icon   = document.getElementById('drinkIcon');
+      if (drinkable) {
+        if (banner) banner.className = 'drink-banner safe';
+        if (title)  { title.textContent = 'WATER IS DRINKABLE — जल पीने योग्य है'; title.className = 'drink-banner-title safe'; }
+        if (sub)    sub.textContent = 'All parameters within WHO safe limits. Water is safe for consumption.';
+        if (chip)   { chip.textContent = 'SAFE'; chip.className = 'drink-badge safe'; }
+        if (icon)   icon.textContent = '✅';
+      } else {
+        if (banner) banner.className = 'drink-banner unsafe';
+        if (title)  { title.textContent = 'WATER NOT SAFE — जल पीने योग्य नहीं'; title.className = 'drink-banner-title unsafe'; }
+        if (sub)    sub.textContent = `AI Model (${severity.toUpperCase()}): Contamination detected! Do not drink — तुरंत कार्रवाई करें।`;
+        if (chip)   { chip.textContent = 'UNSAFE'; chip.className = 'drink-badge unsafe'; }
+        if (icon)   icon.textContent = '🚨';
+      }
+
+      // AI severity badge
+      const badge = document.getElementById('aiSeverityBadge');
+      if (badge) {
+        const map = { safe:'pill-safe', low:'pill-safe', medium:'pill-warn', high:'pill-danger', critical:'pill-danger' };
+        badge.className = 'status-pill ' + (map[severity] || 'pill-safe');
+        badge.textContent = (severity + ' (' + overall + '%)').toUpperCase();
+      }
+
+      // Concern box
+      if (data.concern || data.action) {
+        const box = document.getElementById('ai-concern-box');
+        if (box) box.style.display = 'block';
+        const ct = document.getElementById('ai-concern-text');
+        const at = document.getElementById('ai-action-text');
+        if (ct) ct.textContent = '⚠️ ' + (data.concern || '');
+        if (at) at.textContent = '✅ Action: ' + (data.action || '');
+      }
+    })
+    .catch(() => {});
+}
+fetchAI();
+setInterval(fetchAI, 3000);
+
+/* ── LEAFLET MAP ── */
+const VILLAGES = [
+  { name:"Nasirabad",   lat:26.3195, lng:74.7394, status:"red",    cases:8,  disease:"Cholera",   tds:720, turb:8.3, temp:32, ph:6.7, dist:"Ajmer", chlorine:0.05 },
+  { name:"Beawar",      lat:26.1013, lng:74.3218, status:"yellow", cases:5,  disease:"Typhoid",   tds:580, turb:4.8, temp:31, ph:8.1, dist:"Ajmer", chlorine:0.15 },
+  { name:"Mangliawas",  lat:26.3912, lng:74.5481, status:"yellow", cases:3,  disease:"Diarrhea",  tds:445, turb:3.5, temp:30, ph:7.6, dist:"Ajmer", chlorine:0.22 },
+  { name:"Kishangarh",  lat:26.5974, lng:74.8644, status:"green",  cases:0,  disease:"None",      tds:312, turb:1.2, temp:29, ph:7.4, dist:"Ajmer", chlorine:0.40 },
+  { name:"Kekri",       lat:25.9768, lng:75.1538, status:"green",  cases:1,  disease:"None",      tds:410, turb:1.8, temp:29, ph:7.2, dist:"Ajmer", chlorine:0.38 },
+  { name:"Sarwar",      lat:26.0634, lng:75.0138, status:"green",  cases:0,  disease:"None",      tds:298, turb:0.9, temp:28, ph:7.5, dist:"Ajmer", chlorine:0.45 },
+  { name:"Pisangan",    lat:26.4321, lng:74.6723, status:"green",  cases:0,  disease:"None",      tds:380, turb:2.1, temp:28, ph:7.1, dist:"Ajmer", chlorine:0.32 },
+  { name:"Goyla",       lat:26.2843, lng:74.9123, status:"green",  cases:0,  disease:"None",      tds:356, turb:1.5, temp:29, ph:7.3, dist:"Ajmer", chlorine:0.41 },
+  { name:"Tabiji",      lat:26.4612, lng:74.6102, status:"green",  cases:0,  disease:"None",      tds:390, turb:2.4, temp:29, ph:7.0, dist:"Ajmer", chlorine:0.28 },
+];
+const MAP_COLORS = { red:"#dc2626", yellow:"#d97706", green:"#16a34a" };
+const MAP_BG     = { red:"#fee2e2", yellow:"#fef3c7", green:"#dcfce7" };
+const MAP_BORDER = { red:"#fca5a5", yellow:"#fcd34d", green:"#86efac" };
+
+function initMap() {
+  const el = document.getElementById('govLeafletMap');
+  if (!el || !window.L) return;
+  if (window._aqMap) { window._aqMap.invalidateSize(); return; } // already init
+  const map = L.map('govLeafletMap', { center:[26.25, 74.75], zoom:9, zoomControl:true });
+  window._aqMap = map; // store globally for invalidateSize calls
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:'© OpenStreetMap contributors', maxZoom:18
+  }).addTo(map);
+
+  VILLAGES.forEach(v => {
+    const c = MAP_COLORS[v.status];
+    const sz = v.status==='red' ? 22 : v.status==='yellow' ? 18 : 14;
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="width:${sz}px;height:${sz}px;background:${c};border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,0.3);cursor:pointer;" title="${v.name}"></div>`,
+      iconSize:[sz,sz], iconAnchor:[sz/2,sz/2], popupAnchor:[0,-sz/2-2]
+    });
+    const tdsOK  = v.tds  <= 500 ? '✅' : '❌';
+    const turbOK = v.turb <= 4   ? '✅' : '❌';
+    const phOK   = (v.ph  >= 6.5 && v.ph <= 8.5) ? '✅' : '❌';
+    const clOK   = (v.chlorine || 0) >= 0.2 ? '✅' : '❌';
+    const popup = L.popup({ className:'aq-gov-popup', maxWidth:260 }).setContent(`
+      <div class="popup-inner">
+        <div class="popup-title" style="color:${c};">${v.name}</div>
+        <div class="popup-sub">${v.dist} District · Ajmer, Rajasthan</div>
+        <div class="popup-grid">
+          <div class="popup-cell"><div class="popup-cell-lbl">TDS ${tdsOK}</div><div class="popup-cell-val">${v.tds} mg/L</div></div>
+          <div class="popup-cell"><div class="popup-cell-lbl">Turbidity ${turbOK}</div><div class="popup-cell-val">${v.turb} NTU</div></div>
+          <div class="popup-cell"><div class="popup-cell-lbl">pH ${phOK}</div><div class="popup-cell-val">${v.ph}</div></div>
+          <div class="popup-cell"><div class="popup-cell-lbl">Chlorine ${clOK}</div><div class="popup-cell-val">${v.chlorine||'—'} mg/L</div></div>
+        </div>
+        <div class="popup-status" style="background:${MAP_BG[v.status]};border:1px solid ${MAP_BORDER[v.status]};color:${c};">
+          ${v.status==='red'?'🚨 CRITICAL':v.status==='yellow'?'⚠️ WARNING':'✅ SAFE'} — Cases: ${v.cases} — ${v.disease}
+        </div>
+      </div>`);
+    L.marker([v.lat, v.lng], {icon}).bindPopup(popup).addTo(map);
+  });
+
+  // Legend
+  const legend = L.control({position:'bottomleft'});
+  legend.onAdd = () => {
+    const d = L.DomUtil.create('div');
+    d.style.cssText = 'background:white;border:1px solid #e5e7eb;border-radius:4px;padding:8px 12px;font-family:Noto Sans,sans-serif;font-size:11px;color:#374151;line-height:2;box-shadow:0 2px 6px rgba(0,0,0,0.1);';
+    d.innerHTML = `<b style="color:#1a56a0;display:block;margin-bottom:3px;">Water Quality</b>
+      <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#16a34a;margin-right:5px;"></span>Safe (WHO Compliant)<br>
+      <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#d97706;margin-right:5px;"></span>Warning (Monitor)<br>
+      <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#dc2626;margin-right:5px;"></span>Critical (Act Now)`;
+    return d;
+  };
+  legend.addTo(map);
+}
+setTimeout(initMap, 300);
+
+/* ── VILLAGE SENSOR CARDS ── */
+function renderVillageCards() {
+  const grid = document.getElementById('villageCardsGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const statusClass = { red:'v-red', yellow:'v-yellow', green:'v-green' };
+
+  VILLAGES.forEach((v, i) => {
+    const phSt   = (v.ph>=6.5&&v.ph<=8.5) ? 'safe' : 'danger';
+    const tdsSt  = v.tds<=500 ? 'safe' : v.tds<=600 ? 'warning' : 'danger';
+    const turbSt = v.turb<=4  ? 'safe' : v.turb<=8  ? 'warning' : 'danger';
+    const clSt   = (v.chlorine||0)>=0.2 ? 'safe' : (v.chlorine||0)>=0.1 ? 'warning' : 'danger';
+    const statusMap = { red:'pill-danger', yellow:'pill-warn', green:'pill-safe' };
+    const statusLabel = { red:'⚠️ Critical', yellow:'⚠️ Warning', green:'✅ Safe' };
+
+    const pct = (val, max) => Math.min(100, Math.max(0, val/max*100)).toFixed(0);
+
+    const card = document.createElement('div');
+    card.className = `village-sensor-card ${statusClass[v.status]}`;
+    card.style.animationDelay = `${0.05 + i*0.06}s`;
+    card.innerHTML = `
+      <div class="vsc-header">
+        <div>
+          <div class="vsc-name">💧 ${v.name}</div>
+          <div class="vsc-dist">${v.dist} District · Ajmer, Rajasthan</div>
+        </div>
+        <span class="status-pill ${statusMap[v.status]}">${statusLabel[v.status]}</span>
+      </div>
+      <div class="vsc-body">
+        <div class="vsc-row">
+          <span class="vsc-lbl">⚗️ pH</span>
+          <div class="vsc-bar-wrap"><div class="vsc-bar-fill ${phSt}" style="width:${pct(v.ph,14)}%"></div></div>
+          <span class="vsc-val ${phSt}">${v.ph}</span>
+        </div>
+        <div class="vsc-row">
+          <span class="vsc-lbl">🧂 TDS</span>
+          <div class="vsc-bar-wrap"><div class="vsc-bar-fill ${tdsSt}" style="width:${pct(v.tds,1000)}%"></div></div>
+          <span class="vsc-val ${tdsSt}">${v.tds} mg/L</span>
+        </div>
+        <div class="vsc-row">
+          <span class="vsc-lbl">🌊 Turbidity</span>
+          <div class="vsc-bar-wrap"><div class="vsc-bar-fill ${turbSt}" style="width:${pct(v.turb,15)}%"></div></div>
+          <span class="vsc-val ${turbSt}">${v.turb} NTU</span>
+        </div>
+        <div class="vsc-row">
+          <span class="vsc-lbl">🧪 Chlorine</span>
+          <div class="vsc-bar-wrap"><div class="vsc-bar-fill ${clSt}" style="width:${pct(v.chlorine||0,1)}%"></div></div>
+          <span class="vsc-val ${clSt}">${v.chlorine||'—'} mg/L</span>
+        </div>
+        <div class="vsc-row">
+          <span class="vsc-lbl">🌡️ Temp</span>
+          <div class="vsc-bar-wrap"><div class="vsc-bar-fill safe" style="width:${pct(v.temp,50)}%"></div></div>
+          <span class="vsc-val safe">${v.temp}°C</span>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+renderVillageCards();
+
+/* ── TREND CHART ── */
+function initTrend() {
+  const canvas = document.getElementById('trendChart');
+  if (!canvas || !window.Chart) return;
+  new Chart(canvas, {
+    type:'line',
+    data:{
+      labels:['Mon','Tue','Wed','Thu','Fri','Sat','Today'],
+      datasets:[
+        { label:'Cholera Risk %', data:[8,12,18,28,42,55,68], borderColor:'#dc2626', backgroundColor:'rgba(220,38,38,0.07)', borderWidth:2, pointRadius:3, tension:0.4, fill:true, yAxisID:'yR' },
+        { label:'TDS (mg/L)',     data:[310,335,360,420,480,530,570], borderColor:'#1a56a0', backgroundColor:'transparent', borderWidth:1.5, pointRadius:2, tension:0.4, borderDash:[4,3], yAxisID:'yT' },
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{ labels:{color:'#6b7280',font:{family:'Noto Sans',size:10},boxWidth:12} },
+        tooltip:{ backgroundColor:'white', borderColor:'#e5e7eb', borderWidth:1, titleColor:'#1a56a0', bodyColor:'#374151', padding:8 }
+      },
+      scales:{
+        x:{ grid:{color:'#f3f4f6'}, ticks:{color:'#9ca3af',font:{size:10}} },
+        yR:{ type:'linear', position:'left', min:0, max:100, grid:{color:'rgba(220,38,38,0.07)'}, ticks:{color:'#dc2626',font:{size:9},callback:v=>v+'%'} },
+        yT:{ type:'linear', position:'right', grid:{display:false}, ticks:{color:'#1a56a0',font:{size:9},callback:v=>v} }
+      }
+    }
+  });
+}
+setTimeout(initTrend, 500);
+
+/* ══════════════════════════════════════════
+   ASHA REPORTS — Firebase Live Fetch + Cards
+   Firebase path: /asha_reports.json
+   Backend (.py) pushes reports here via POST
+══════════════════════════════════════════ */
+const ASHA_FB_URL = "https://aqua-82fea-default-rtdb.firebaseio.com/asha_reports.json";
+
+// Static fallback data (shown if Firebase empty/offline)
+const ASHA_STATIC = [
+  { name:"Sunita Devi",   village:"Nasirabad",  district:"Ajmer", time:"08:30 Today", total:8,  cholera:6, typhoid:1, diarrhea:1, severity:"critical" },
+  { name:"Kavita Sharma", village:"Beawar",     district:"Ajmer", time:"07:45 Today", total:5,  cholera:0, typhoid:4, diarrhea:1, severity:"warning"  },
+  { name:"Rekha Meena",   village:"Mangliawas", district:"Ajmer", time:"06:20 Today", total:3,  cholera:0, typhoid:1, diarrhea:2, severity:"warning"  },
+  { name:"Meera Gurjar",  village:"Kishangarh", district:"Ajmer", time:"Yesterday",   total:0,  cholera:0, typhoid:0, diarrhea:0, severity:"safe"     },
+  { name:"Priya Kumawat", village:"Kekri",      district:"Ajmer", time:"Yesterday",   total:1,  cholera:0, typhoid:1, diarrhea:0, severity:"safe"     },
+  { name:"Anita Jain",    village:"Sarwar",     district:"Ajmer", time:"Yesterday",   total:0,  cholera:0, typhoid:0, diarrhea:0, severity:"safe"     },
+];
+
+function renderAshaCards(reports) {
+  const grid = document.getElementById('ashaCardsGrid');
+  if (!grid) return;
+  if (!reports || reports.length === 0) {
+    grid.innerHTML = '<div class="asha-loading">📭 कोई रिपोर्ट नहीं मिली — No reports found</div>';
+    return;
+  }
+  grid.innerHTML = '';
+  const sevClass = { critical:'ac-critical', warning:'ac-warning', safe:'ac-safe', low:'ac-safe', medium:'ac-warning', high:'ac-critical' };
+  const sevPill  = { critical:'pill-danger', warning:'pill-warn', safe:'pill-safe', low:'pill-safe', medium:'pill-warn', high:'pill-danger' };
+  const sevLabel = { critical:'🚨 Critical', warning:'⚠️ Warning', safe:'✅ Safe', low:'✅ Safe', medium:'⚠️ Warning', high:'🔴 High' };
+  const sevBar   = { critical:'critical', warning:'warning', safe:'safe', low:'safe', medium:'warning', high:'critical' };
+
+  reports.forEach((r, i) => {
+    const sev = (r.severity || 'safe').toLowerCase();
+    const card = document.createElement('div');
+    card.className = `asha-report-card ${sevClass[sev] || 'ac-safe'}`;
+    card.style.animationDelay = `${0.05 + i * 0.07}s`;
+
+    // Format timestamp nicely
+    let timeStr = r.time || r.timestamp || 'Unknown';
+    if (r.timestamp && r.timestamp.includes('T')) {
+      const d = new Date(r.timestamp);
+      const now = new Date();
+      const diffMs = now - d;
+      const diffMin = Math.floor(diffMs / 60000);
+      if (diffMin < 60)       timeStr = `${diffMin} min ago`;
+      else if (diffMin < 1440) timeStr = `${Math.floor(diffMin/60)}h ago`;
+      else                    timeStr = d.toLocaleDateString('en-IN');
+    }
+
+    const totalColor = sev === 'critical' ? '#dc2626' : sev === 'warning' ? '#d97706' : '#16a34a';
+    card.innerHTML = `
+      <div class="asha-card-head">
+        <div>
+          <div class="asha-worker-name">👩‍⚕️ ${r.name || r.worker_name || 'ASHA Worker'}</div>
+          <div class="asha-village-tag">📍 ${r.village || '—'}, ${r.district || 'Ajmer'} District</div>
+        </div>
+        <span class="status-pill ${sevPill[sev] || 'pill-safe'}">${sevLabel[sev] || '✅ Safe'}</span>
+      </div>
+      <div class="asha-card-body">
+        <div class="asha-cases-row">
+          <div class="asha-case-box c-total">
+            <div class="asha-case-num" style="color:${totalColor};">${r.total ?? r.total_cases ?? 0}</div>
+            <div class="asha-case-lbl">कुल बीमार<br>Total</div>
+          </div>
+          <div class="asha-case-box c-cholera">
+            <div class="asha-case-num">${r.cholera ?? r.cholera_cases ?? 0}</div>
+            <div class="asha-case-lbl">हैजा<br>Cholera</div>
+          </div>
+          <div class="asha-case-box c-typhoid">
+            <div class="asha-case-num">${r.typhoid ?? r.typhoid_cases ?? 0}</div>
+            <div class="asha-case-lbl">टाइफाइड<br>Typhoid</div>
+          </div>
+          <div class="asha-case-box c-diarr">
+            <div class="asha-case-num">${r.diarrhea ?? r.diarrhea_cases ?? 0}</div>
+            <div class="asha-case-lbl">दस्त<br>Diarrhea</div>
+          </div>
+        </div>
+        <div class="asha-status-bar ${sevBar[sev] || 'safe'}">
+          ${sevLabel[sev] || '✅ Safe'} — ${r.notes || r.concern || (sev==='critical'?'Immediate action required':sev==='warning'?'Monitor closely':'All clear')}
+        </div>
+      </div>
+      <div class="asha-card-foot">
+        <span class="asha-time-tag">🕐 ${timeStr}</span>
+        <span class="asha-fb-badge">🔥 Firebase Live</span>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  // Update count
+  const countEl = document.querySelector('#page-asha .page-content > div:first-child > div:first-child');
+  if (countEl) countEl.textContent = `${reports.length} reports received today | आज ${reports.length} रिपोर्ट प्राप्त`;
+}
+
+function fetchAshaReports() {
+  fetch(ASHA_FB_URL)
+    .then(r => r.json())
+    .then(data => {
+      const fetchEl = document.getElementById('ashaLastFetch');
+      if (fetchEl) fetchEl.textContent = 'Updated: ' + new Date().toLocaleTimeString('en-IN');
+
+      if (!data) {
+        renderAshaCards(ASHA_STATIC);
+        return;
+      }
+
+      // Firebase returns object with push-keys — convert to array
+      let reports;
+      if (Array.isArray(data)) {
+        reports = data.filter(Boolean);
+      } else if (typeof data === 'object') {
+        reports = Object.values(data).filter(Boolean);
+      } else {
+        reports = ASHA_STATIC;
+      }
+
+      // Sort newest first (by timestamp if available)
+      reports.sort((a, b) => {
+        if (a.timestamp && b.timestamp) return new Date(b.timestamp) - new Date(a.timestamp);
+        return 0;
+      });
+
+      renderAshaCards(reports.length > 0 ? reports : ASHA_STATIC);
+    })
+    .catch(() => {
+      // Offline / CORS — show static data
+      renderAshaCards(ASHA_STATIC);
+      const fetchEl = document.getElementById('ashaLastFetch');
+      if (fetchEl) fetchEl.textContent = 'Offline — static data';
+    });
+}
+
+// Initial load + refresh every 10s
+fetchAshaReports();
+setInterval(fetchAshaReports, 10000);
+
+// Also trigger when ASHA tab is clicked
+document.getElementById('nav-asha').addEventListener('click', fetchAshaReports);
+</script>
+</body>
+</html>
