@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Rural Water Health Monitoring System</title>
+  <style>
+    /* ══════════════════════════════════════════
+       ROOT & RESET
+    ══════════════════════════════════════════ */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', 'Helvetica Neue', Helvetica, sans-serif;
+      background-color: #f0f4f8;
+      background-image:
+        linear-gradient(rgba(0,102,204,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,102,204,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ══════════════════════════════════════════
+       NATIONAL / STATE HEADER BAR
+    ══════════════════════════════════════════ */
+    .gov-topstrip {
+      background: #003d99;
+      color: #fff;
+      font-size: 0.72rem;
+      padding: 5px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      letter-spacing: 0.3px;
+    }
+    .gov-topstrip a {
+      color: #cce0ff;
+      text-decoration: none;
+      margin-left: 14px;
+      font-size: 0.7rem;
+    }
+    .gov-topstrip a:hover { text-decoration: underline; }
+
+    /* ══════════════════════════════════════════
+       MINISTRY HEADER
+    ══════════════════════════════════════════ */
+    .ministry-header {
+      background: #fff;
+      border-bottom: 3px solid #1a7d3e;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    /* Government emblem placeholder */
+    .emblem {
+      width: 70px;
+      height: 70px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #003d99;
+      border-radius: 50%;
+      background: #f7faff;
+      position: relative;
+      overflow: hidden;
+    }
+    .emblem svg {
+      width: 46px;
+      height: 46px;
+    }
+
+    .ministry-text h1 {
+      font-size: 1.18rem;
+      color: #003d99;
+      font-weight: bold;
+      letter-spacing: 0.4px;
+      line-height: 1.3;
+    }
+    .ministry-text h1 span {
+      display: block;
+      font-size: 0.78rem;
+      color: #555;
+      font-weight: normal;
+      margin-top: 2px;
+      letter-spacing: 0.2px;
+    }
+    .ministry-text .hindi-sub {
+      font-size: 0.8rem;
+      color: #1a7d3e;
+      margin-top: 4px;
+      font-weight: 600;
+    }
+
+    /* Header flags / watermark strip */
+    .flag-strip {
+      margin-left: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 5px;
+    }
+    .flag-strip .tricolor {
+      display: flex;
+      width: 48px;
+      height: 10px;
+      border-radius: 2px;
+      overflow: hidden;
+      border: 1px solid #ccc;
+    }
+    .flag-strip .tricolor div { flex: 1; }
+    .tricolor .saffron { background: #FF9933; }
+    .tricolor .white   { background: #fff; }
+    .tricolor .green   { background: #138808; }
+    .flag-strip small {
+      font-size: 0.62rem;
+      color: #999;
+      text-align: right;
+    }
+
+    /* ══════════════════════════════════════════
+       NAV TABS (gov portal style)
+    ══════════════════════════════════════════ */
+    .gov-nav {
+      background: #003d99;
+      padding: 0 24px;
+      display: flex;
+      gap: 0;
+    }
+    .gov-nav a {
+      display: block;
+      padding: 10px 18px;
+      font-size: 0.8rem;
+      color: #cce0ff;
+      text-decoration: none;
+      border-right: 1px solid rgba(255,255,255,0.1);
+      transition: background 0.2s;
+    }
+    .gov-nav a:hover,
+    .gov-nav a.active {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+    }
+
+    /* ══════════════════════════════════════════
+       MAIN CONTENT AREA
+    ══════════════════════════════════════════ */
+    .main-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 36px 16px;
+    }
+
+    /* ══════════════════════════════════════════
+       LOGIN CARD
+    ══════════════════════════════════════════ */
+    .login-wrapper {
+      display: flex;
+      gap: 32px;
+      align-items: flex-start;
+      max-width: 860px;
+      width: 100%;
+    }
+
+    /* Info panel left */
+    .info-panel {
+      background: #fff;
+      border: 1px solid #d0dde8;
+      border-top: 4px solid #1a7d3e;
+      border-radius: 4px;
+      padding: 28px 24px;
+      flex: 1;
+      min-width: 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    }
+    .info-panel h2 {
+      font-size: 1rem;
+      color: #003d99;
+      margin-bottom: 14px;
+      border-bottom: 1px solid #e0eaf4;
+      padding-bottom: 10px;
+    }
+    .info-panel ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .info-panel ul li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.83rem;
+      color: #444;
+      line-height: 1.5;
+    }
+    .info-panel ul li .icon-dot {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #e6f0fb;
+      border: 1px solid #b8d0ee;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+    }
+
+    .notice-box {
+      margin-top: 18px;
+      background: #fff8e6;
+      border: 1px solid #f0c040;
+      border-left: 4px solid #e6a800;
+      border-radius: 3px;
+      padding: 10px 14px;
+      font-size: 0.78rem;
+      color: #7a5c00;
+      line-height: 1.6;
+    }
+
+    /* Login card */
+    .login-card {
+      background: #fff;
+      border: 1px solid #d0dde8;
+      border-top: 4px solid #003d99;
+      border-radius: 4px;
+      padding: 30px 28px 24px;
+      width: 340px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.09);
+    }
+
+    .card-title {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+    .card-title h2 {
+      font-size: 1.05rem;
+      color: #003d99;
+      font-weight: bold;
+    }
+    .card-title .hindi {
+      font-size: 0.8rem;
+      color: #1a7d3e;
+      margin-top: 2px;
+    }
+    .card-title .divider {
+      width: 50px;
+      height: 2px;
+      background: #003d99;
+      margin: 10px auto 0;
+      border-radius: 2px;
+    }
+
+    /* ══════════════════════════════════════════
+       ROLE SELECTOR
+    ══════════════════════════════════════════ */
+    .role-section {
+      margin-bottom: 18px;
+    }
+    .role-section label.section-lbl {
+      display: block;
+      font-size: 0.75rem;
+      color: #555;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .role-options {
+      display: flex;
+      gap: 10px;
+    }
+    .role-opt {
+      flex: 1;
+      border: 2px solid #c8d8e8;
+      border-radius: 4px;
+      padding: 10px 8px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.18s;
+      background: #f7faff;
+      position: relative;
+    }
+    .role-opt input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .role-opt .role-icon { font-size: 1.5rem; display: block; margin-bottom: 4px; }
+    .role-opt .role-name { font-size: 0.75rem; color: #444; font-weight: bold; line-height: 1.3; }
+    .role-opt .role-hindi { font-size: 0.65rem; color: #888; margin-top: 2px; }
+
+    .role-opt:hover {
+      border-color: #5599cc;
+      background: #eef5ff;
+    }
+    .role-opt.selected {
+      border-color: #003d99;
+      background: #e6f0fb;
+    }
+    .role-opt.selected .role-name { color: #003d99; }
+
+    /* ══════════════════════════════════════════
+       FORM FIELDS
+    ══════════════════════════════════════════ */
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .field-wrap label {
+      display: block;
+      font-size: 0.75rem;
+      color: #555;
+      font-weight: bold;
+      margin-bottom: 5px;
+      letter-spacing: 0.3px;
+    }
+    .field-wrap label span.hindi-lbl {
+      font-weight: normal;
+      color: #888;
+      font-size: 0.7rem;
+    }
+    .field-wrap .input-row {
+      display: flex;
+      align-items: center;
+      border: 1px solid #b8ccd8;
+      border-radius: 3px;
+      background: #fff;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+    .field-wrap .input-row:focus-within {
+      border-color: #003d99;
+      box-shadow: 0 0 0 2px rgba(0,61,153,0.1);
+    }
+    .field-wrap .input-icon {
+      padding: 0 10px;
+      color: #888;
+      font-size: 1rem;
+      background: #f5f8fc;
+      border-right: 1px solid #d0dde8;
+      height: 40px;
+      display: flex;
+      align-items: center;
+    }
+    .field-wrap input {
+      border: none;
+      outline: none;
+      padding: 0 12px;
+      height: 40px;
+      width: 100%;
+      font-family: inherit;
+      font-size: 0.88rem;
+      color: #222;
+      background: transparent;
+    }
+    .field-wrap input::placeholder { color: #aaa; }
+    .field-wrap .eye-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0 10px;
+      color: #888;
+      font-size: 1rem;
+      height: 40px;
+    }
+
+    /* Captcha row */
+    .captcha-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .captcha-box {
+      background: #eef5ff;
+      border: 1px solid #b8ccd8;
+      border-radius: 3px;
+      padding: 6px 14px;
+      font-family: 'Courier New', monospace;
+      font-size: 1.1rem;
+      letter-spacing: 6px;
+      color: #003d99;
+      font-weight: bold;
+      min-width: 110px;
+      text-align: center;
+      position: relative;
+      user-select: none;
+    }
+    .captcha-box::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: rgba(0,61,153,0.2);
+    }
+    .captcha-refresh {
+      background: none;
+      border: 1px solid #b8ccd8;
+      border-radius: 3px;
+      padding: 6px 10px;
+      cursor: pointer;
+      color: #555;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    .captcha-refresh:hover { background: #eef5ff; color: #003d99; }
+
+    /* ══════════════════════════════════════════
+       BUTTONS
+    ══════════════════════════════════════════ */
+    .btn-login {
+      width: 100%;
+      padding: 11px;
+      background: #003d99;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: background 0.2s;
+      margin-bottom: 10px;
+    }
+    .btn-login:hover { background: #0050c8; }
+    .btn-login:active { background: #002d80; }
+
+    .login-links {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: #555;
+    }
+    .login-links a {
+      color: #003d99;
+      text-decoration: none;
+    }
+    .login-links a:hover { text-decoration: underline; }
+
+    /* Error message */
+    .error-msg {
+      display: none;
+      background: #fff0f0;
+      border: 1px solid #f0a0a0;
+      border-left: 3px solid #cc3333;
+      border-radius: 3px;
+      padding: 8px 12px;
+      font-size: 0.78rem;
+      color: #aa2222;
+      margin-bottom: 14px;
+    }
+    .error-msg.show { display: block; }
+
+    /* Success overlay */
+    .success-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.92);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      text-align: center;
+    }
+    .success-overlay.show { display: flex; }
+    .success-overlay .tick {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #1a7d3e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: #fff;
+      animation: popIn 0.35s ease;
+    }
+    @keyframes popIn {
+      from { transform: scale(0.3); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+    .success-overlay p { font-size: 1rem; color: #333; font-weight: bold; }
+    .success-overlay small { color: #888; font-size: 0.8rem; }
+
+    /* ══════════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════════ */
+    footer {
+      background: #f0f4f8;
+      border-top: 1px solid #d0dde8;
+      padding: 14px 24px;
+      text-align: center;
+    }
+    .footer-logos {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 8px;
+    }
+    .footer-logo-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      color: #555;
+    }
+    .footer-logo-box .dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 1px solid #b8ccd8;
+      background: #e6f0fb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+    }
+    .footer-sep { color: #bbb; }
+    footer .footer-main {
+      font-size: 0.72rem;
+      color: #777;
+      line-height: 1.7;
+    }
+    footer .footer-main b { color: #003d99; }
+
+    /* ══════════════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════════════ */
+    @media (max-width: 700px) {
+      .login-wrapper { flex-direction: column; align-items: center; }
+      .login-card { width: 100%; max-width: 360px; }
+      .info-panel { width: 100%; max-width: 360px; }
+      .gov-nav { overflow-x: auto; }
+      .ministry-text h1 { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── GOVN TOP STRIP ── -->
+<div class="gov-topstrip">
+  <span>भारत सरकार | Government of India — Rajasthan</span>
+  <div>
+    <a href="#">🔤 हिंदी</a>
+    <a href="#">Screen Reader</a>
+    <a href="#">Sitemap</a>
+    <a href="#">Contact Us</a>
+  </div>
+</div>
+
+<!-- ── MINISTRY HEADER ── -->
+<div class="ministry-header">
+  <!-- Emblem SVG placeholder (Ashoka Chakra style) -->
+  <div class="emblem">
+    <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Outer ring -->
+      <circle cx="32" cy="32" r="28" stroke="#003d99" stroke-width="2.5"/>
+      <circle cx="32" cy="32" r="22" stroke="#1a7d3e" stroke-width="1.2" stroke-dasharray="3 2"/>
+      <!-- Chakra center -->
+      <circle cx="32" cy="32" r="6" fill="#003d99"/>
+      <!-- Chakra spokes (24 spokes simplified to 8) -->
+      <g stroke="#003d99" stroke-width="1.2">
+        <line x1="32" y1="10" x2="32" y2="22"/>
+        <line x1="32" y1="42" x2="32" y2="54"/>
+        <line x1="10" y1="32" x2="22" y2="32"/>
+        <line x1="42" y1="32" x2="54" y2="32"/>
+        <line x1="17" y1="17" x2="25" y2="25"/>
+        <line x1="39" y1="39" x2="47" y2="47"/>
+        <line x1="47" y1="17" x2="39" y2="25"/>
+        <line x1="25" y1="39" x2="17" y2="47"/>
+      </g>
+      <!-- Lions silhouette (simplified) -->
+      <path d="M22 48 Q24 44 28 45 Q30 42 32 43 Q34 42 36 45 Q40 44 42 48"
+            stroke="#003d99" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <!-- Water drops (AquaGuard specific) -->
+      <path d="M28 55 Q32 58 36 55 Q36 51 32 50 Q28 51 28 55Z" fill="#1a7d3e" opacity="0.7"/>
+    </svg>
+  </div>
+
+  <div class="ministry-text">
+    <h1>
+      Rural Water Health Monitoring System
+      <span>Ministry of Health &amp; Public Welfare, Rajasthan</span>
+    </h1>
+    <div class="hindi-sub">ग्रामीण जल स्वास्थ्य निगरानी प्रणाली &nbsp;|&nbsp; AquaGuard Portal</div>
+  </div>
+
+  <div class="flag-strip">
+    <div class="tricolor">
+      <div class="saffron"></div>
+      <div class="white"></div>
+      <div class="green"></div>
+    </div>
+    <small>Jai Hind 🇮🇳</small>
+  </div>
+</div>
+
+<!-- ── NAV TABS ── -->
+<nav class="gov-nav">
+  <a href="#" class="active">Home</a>
+  <a href="#">About</a>
+  <a href="#">Water Quality Reports</a>
+  <a href="#">ASHA Network</a>
+  <a href="#">Guidelines</a>
+  <a href="#">Contact</a>
+</nav>
+
+<!-- ── MAIN CONTENT ── -->
+<div class="main-content">
+  <div class="login-wrapper">
+
+    <!-- INFO PANEL (left) -->
+    <div class="info-panel">
+      <h2>📋 About This Portal</h2>
+      <ul>
+        <li>
+          <div class="icon-dot">💧</div>
+          <div>
+            <strong>Real-time Water Quality</strong><br>
+            Monitor TDS, Turbidity, Temperature & Salinity of your village water supply from IoT sensors.
+          </div>
+        </li>
+        <li>
+          <div class="icon-dot">🤖</div>
+          <div>
+            <strong>AI Disease Risk Alerts</strong><br>
+            Groq AI engine predicts Cholera, Typhoid, Diarrhea risk based on live sensor data.
+          </div>
+        </li>
+        <li>
+          <div class="icon-dot">📱</div>
+          <div>
+            <strong>ASHA Worker Reports</strong><br>
+            Field workers submit daily health reports. Data flows to officials in real-time.
+          </div>
+        </li>
+        <li>
+          <div class="icon-dot">📢</div>
+          <div>
+            <strong>SMS Alerts</strong><br>
+            Automatic alerts sent to district health officer when contamination is detected.
+          </div>
+        </li>
+      </ul>
+
+      <div class="notice-box">
+        ⚠️ <strong>Important / महत्वपूर्ण:</strong><br>
+        This is an official government portal. Unauthorized access is punishable under IT Act 2000.
+        ASHA Workers must use their assigned credentials only.
+      </div>
+    </div>
+
+    <!-- LOGIN CARD (right) -->
+    <div class="login-card">
+      <div class="card-title">
+        <h2>User Login</h2>
+        <div class="hindi">लॉगिन करें</div>
+        <div class="divider"></div>
+      </div>
+
+      <!-- Error message box -->
+      <div class="error-msg" id="errorMsg">
+        ❌ Invalid credentials. Please check your username and password.
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+
+        <!-- ROLE SELECTION -->
+        <div class="role-section">
+          <label class="section-lbl">Select Role / भूमिका चुनें</label>
+          <div class="role-options">
+            <label class="role-opt selected" id="role-asha" onclick="selectRole('asha')">
+              <input type="radio" name="role" value="asha" checked>
+              <span class="role-icon">👩‍⚕️</span>
+              <div class="role-name">ASHA Worker</div>
+              <div class="role-hindi">आशा कार्यकर्ता</div>
+            </label>
+            <label class="role-opt" id="role-villager" onclick="selectRole('villager')">
+              <input type="radio" name="role" value="villager">
+              <span class="role-icon">🏡</span>
+              <div class="role-name">Villager</div>
+              <div class="role-hindi">ग्रामीण</div>
+            </label>
+          </div>
+        </div>
+
+        <!-- USERNAME -->
+        <div class="field-group">
+          <div class="field-wrap">
+            <label for="username">
+              Username / Mobile No.
+              <span class="hindi-lbl">(उपयोगकर्ता नाम / मोबाइल)</span>
+            </label>
+            <div class="input-row">
+              <div class="input-icon">👤</div>
+              <input type="text" id="username" placeholder="Enter username or mobile number"
+                     autocomplete="username" required>
+            </div>
+          </div>
+
+          <!-- PASSWORD -->
+          <div class="field-wrap">
+            <label for="password">
+              Password
+              <span class="hindi-lbl">(पासवर्ड)</span>
+            </label>
+            <div class="input-row">
+              <div class="input-icon">🔒</div>
+              <input type="password" id="password" placeholder="Enter your password"
+                     autocomplete="current-password" required>
+              <button type="button" class="eye-btn" onclick="togglePwd()" id="eyeBtn" title="Show/Hide password">👁️</button>
+            </div>
+          </div>
+
+          <!-- CAPTCHA -->
+          <div class="field-wrap">
+            <label>Captcha Verification <span class="hindi-lbl">(सत्यापन कोड)</span></label>
+            <div class="captcha-wrap">
+              <div class="captcha-box" id="captchaDisplay">A7 3X</div>
+              <button type="button" class="captcha-refresh" onclick="refreshCaptcha()" title="Refresh captcha">🔄 New</button>
+            </div>
+            <div class="input-row" style="margin-top:8px;">
+              <div class="input-icon">✏️</div>
+              <input type="text" id="captchaInput" placeholder="Type the code above"
+                     maxlength="5" autocomplete="off" required>
+            </div>
+          </div>
+        </div>
+
+        <!-- LOGIN BUTTON -->
+        <button type="submit" class="btn-login" id="loginBtn">
+          🔐 &nbsp; Login &nbsp;(लॉगिन)
+        </button>
+
+        <div class="login-links">
+          <a href="#">Forgot Password? / पासवर्ड भूल गए?</a>
+          <a href="#">Need Help? / सहायता</a>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── SUCCESS OVERLAY ── -->
+<div class="success-overlay" id="successOverlay">
+  <div class="tick">✓</div>
+  <p id="successMsg">Login Successful!</p>
+  <small id="successSub">Redirecting to your dashboard...</small>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-logos">
+    <div class="footer-logo-box">
+      <div class="dot">🏥</div>
+      National Health Mission
+    </div>
+    <span class="footer-sep">|</span>
+    <div class="footer-logo-box">
+      <div class="dot">💧</div>
+      Jal Jeevan Mission
+    </div>
+    <span class="footer-sep">|</span>
+    <div class="footer-logo-box">
+      <div class="dot">🌿</div>
+      Swachh Bharat Abhiyan
+    </div>
+  </div>
+  <div class="footer-main">
+    <b>Powered by Public Health Department, Government of Rajasthan</b><br>
+    Designed &amp; Developed by <b>Alpha Coders</b> — GEC Ajmer &nbsp;|&nbsp;
+    Technova 2026 Champions 🏆 &nbsp;|&nbsp;
+    Content owned by Ministry of Health &amp; Public Welfare<br>
+    <span style="font-size:0.66rem;color:#aaa;">
+      Best viewed in Chrome/Firefox at 1024×768 resolution &nbsp;|&nbsp;
+      Site last updated: April 2026
+    </span>
+  </div>
+</footer>
+
+
+<script>
+  /* ══════════════════════════════════════════
+     CAPTCHA GENERATOR
+  ══════════════════════════════════════════ */
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let currentCaptcha = '';
+
+  function generateCaptcha() {
+    let code = '';
+    for (let i = 0; i < 5; i++) {
+      if (i === 2) code += ' ';
+      else code += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return code;
+  }
+
+  function refreshCaptcha() {
+    currentCaptcha = generateCaptcha();
+    document.getElementById('captchaDisplay').textContent = currentCaptcha;
+    document.getElementById('captchaInput').value = '';
+  }
+
+  // Init captcha on load
+  refreshCaptcha();
+
+
+  /* ══════════════════════════════════════════
+     ROLE SELECTION
+  ══════════════════════════════════════════ */
+  let selectedRole = 'asha';
+
+  function selectRole(role) {
+    selectedRole = role;
+    ['asha','villager'].forEach(r => {
+      document.getElementById('role-' + r).classList.toggle('selected', r === role);
+    });
+    document.querySelector(`input[value="${role}"]`).checked = true;
+  }
+
+
+  /* ══════════════════════════════════════════
+     PASSWORD TOGGLE
+  ══════════════════════════════════════════ */
+  function togglePwd() {
+    const inp = document.getElementById('password');
+    const btn = document.getElementById('eyeBtn');
+    if (inp.type === 'password') {
+      inp.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      inp.type = 'password';
+      btn.textContent = '👁️';
+    }
+  }
+
+
+  /* ══════════════════════════════════════════
+     LOGIN HANDLER
+  ══════════════════════════════════════════ */
+
+  // Demo credentials
+  const CREDENTIALS = {
+    asha: [
+      { user: 'asha001',    pass: 'asha@123' },
+      { user: 'sunita',     pass: 'sunita123' },
+      { user: '9876543210', pass: 'asha@123' },
+    ],
+    villager: [
+      { user: 'villager',   pass: 'village@1' },
+      { user: '9000000001', pass: '1234' },
+      { user: 'ram_sharma', pass: 'ram@123' },
+      { user: 'mohan',      pass: 'mohan@123' },
+      { user: 'seema',      pass: 'seema@123' },
+      { user: '9111111111', pass: '1234' },
+      { user: 'lucky',      pass: 'lucky@123' },
+    ],
+  };
+
+  const REDIRECT = {
+    asha:     'ASHA_Worker_Portal%20(1).html',
+    villager: 'aquaguard_mobile_3%20(1).html',
+  };
+
+  function handleLogin(e) {
+    e.preventDefault();
+    const username  = document.getElementById('username').value.trim();
+    const password  = document.getElementById('password').value;
+    const captchaIn = document.getElementById('captchaInput').value.trim().toUpperCase().replace(/\s/g,'');
+    const captchaOk = captchaIn === currentCaptcha.replace(/\s/g,'');
+
+    const errEl = document.getElementById('errorMsg');
+    errEl.classList.remove('show');
+
+    // Captcha check
+    if (!captchaOk) {
+      showError('❌ Wrong captcha code. Please try again. / गलत कोड।');
+      refreshCaptcha();
+      return;
+    }
+
+    // Credential check (demo — replace with real API call)
+    const valid = (CREDENTIALS[selectedRole] || []).some(
+      c => c.user === username && c.pass === password
+    );
+
+    if (!valid) {
+      showError('❌ Invalid username or password. / गलत उपयोगकर्ता नाम या पासवर्ड।');
+      refreshCaptcha();
+      return;
+    }
+
+    // SUCCESS
+    const portalName = selectedRole === 'asha' ? 'ASHA Worker Portal' : 'AquaGuard Mobile (Villager)';
+    const overlay = document.getElementById('successOverlay');
+    document.getElementById('successMsg').textContent =
+      `✅ Welcome, ${username}! (${selectedRole.toUpperCase()})`;
+    document.getElementById('successSub').textContent =
+      `Redirecting to ${portalName}...`;
+    overlay.classList.add('show');
+
+    setTimeout(() => {
+      window.location.href = REDIRECT[selectedRole];
+    }, 1800);
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+</script>
+
+</body>
+</html>
