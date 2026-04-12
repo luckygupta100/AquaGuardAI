@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AquaGuard — ASHA Worker Portal | GEC Ajmer</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gov-blue:#1a56a0;--gov-blue2:#1e40af;--gov-blue-lt:#dbeafe;--gov-blue-xs:#eff6ff;
+  --gov-red:#dc2626;--gov-red-lt:#fee2e2;--gov-yellow:#d97706;--gov-yel-lt:#fef3c7;
+  --gov-green:#16a34a;--gov-grn-lt:#dcfce7;--gov-gray:#374151;--gov-gray2:#6b7280;
+  --gov-gray3:#9ca3af;--gov-border:#e5e7eb;--gov-bg:#f3f4f6;--white:#ffffff;
+  --header-h:60px;--nav-h:44px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;font-family:'Noto Sans',sans-serif;background:var(--gov-bg);color:var(--gov-gray);font-size:13px;line-height:1.5;}
+
+/* OFFLINE BAR */
+#offline-bar{position:fixed;top:0;left:0;right:0;z-index:2000;height:0;overflow:hidden;background:linear-gradient(90deg,#7c2d12,#dc2626);color:white;display:flex;align-items:center;justify-content:space-between;padding:0 14px;font-size:11px;font-weight:700;transition:height 0.3s,padding 0.3s;}
+#offline-bar.show{height:32px;padding:6px 14px;}
+.sync-count{background:rgba(255,255,255,0.2);border-radius:20px;padding:2px 8px;font-family:'JetBrains Mono',monospace;font-size:10px;}
+.sync-spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.8s linear infinite;display:none;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* LANG TOGGLE */
+.lang-toggle{display:flex;gap:2px;background:rgba(255,255,255,0.12);border-radius:20px;padding:3px;}
+.lang-btn{border:none;background:transparent;color:rgba(255,255,255,0.65);font-size:10px;font-weight:700;padding:3px 7px;border-radius:15px;cursor:pointer;transition:all 0.15s;font-family:'Noto Sans',sans-serif;white-space:nowrap;}
+.lang-btn.active{background:rgba(255,255,255,0.25);color:white;}
+
+/* HEADER */
+.gov-topbar{background:linear-gradient(135deg,#0f3460 0%,#1a56a0 60%,#1e6fa0 100%);color:white;padding:0 10px;height:var(--header-h);display:flex;align-items:center;gap:8px;position:fixed;left:0;right:0;z-index:1000;box-shadow:0 2px 8px rgba(0,0,0,0.25);overflow:hidden;transition:top 0.3s;top:0;}
+.gov-emblem{width:34px;height:34px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.gov-title-block{flex:1;min-width:0;}
+.gov-title-hi{font-family:'Noto Sans Devanagari',sans-serif;font-size:9px;opacity:0.85;line-height:1.3;}
+.gov-title-en{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.worker-chip-gov{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:20px;padding:3px 8px;flex-shrink:0;}
+.worker-dot-gov{width:6px;height:6px;border-radius:50%;background:#4ade80;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.worker-name-chip{font-size:10px;font-weight:700;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.worker-village-chip{font-size:9px;opacity:0.7;}
+.gov-live-badge{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);border-radius:4px;padding:3px 6px;font-size:9px;font-weight:600;white-space:nowrap;flex-shrink:0;}
+.gov-live-dot{display:inline-block;width:6px;height:6px;background:#4ade80;border-radius:50%;margin-right:3px;animation:pulse 1.5s infinite;}
+
+/* NAV */
+.gov-nav{background:var(--gov-blue);position:fixed;left:0;right:0;z-index:999;display:flex;align-items:stretch;height:var(--nav-h);box-shadow:0 2px 4px rgba(0,0,0,0.15);transition:top 0.3s;top:60px;}
+.nav-btn-gov{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border:none;background:transparent;cursor:pointer;color:rgba(255,255,255,0.7);font-family:'Noto Sans',sans-serif;font-size:10px;font-weight:600;border-bottom:3px solid transparent;transition:all 0.15s;position:relative;padding:0;}
+.nav-btn-gov:hover{color:white;background:rgba(255,255,255,0.1);}
+.nav-btn-gov.active{color:white;border-bottom-color:#fbbf24;background:rgba(255,255,255,0.12);}
+.nav-icon-gov{font-size:14px;line-height:1;}
+.nav-badge-gov{position:absolute;top:4px;right:calc(50% - 14px);background:var(--gov-red);color:#fff;font-size:9px;font-weight:700;padding:1px 4px;border-radius:20px;display:none;}
+.nav-badge-gov.show{display:block;}
+
+/* APP AREA */
+#app{position:fixed;top:104px;bottom:0;left:0;right:0;overflow:hidden;transition:top 0.3s;}
+.page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;padding:14px 14px 20px;opacity:0;pointer-events:none;transform:translateY(8px);transition:opacity 0.2s,transform 0.2s;-webkit-overflow-scrolling:touch;}
+.page.active{opacity:1;pointer-events:all;transform:translateY(0);}
+.page::-webkit-scrollbar{width:3px;}
+.page::-webkit-scrollbar-thumb{background:var(--gov-border);border-radius:2px;}
+
+/* QUEUE BANNER */
+.queue-banner{background:linear-gradient(90deg,#fef3c7,#fde68a);border:1px solid #fcd34d;border-left:3px solid var(--gov-yellow);border-radius:6px;padding:10px 12px;margin-bottom:12px;display:none;align-items:center;gap:10px;}
+.queue-banner.show{display:flex;}
+.queue-banner-icon{font-size:20px;flex-shrink:0;}
+.queue-banner-text strong{display:block;font-size:11px;color:#92400e;font-weight:700;}
+.queue-banner-text span{font-size:10px;color:#b45309;}
+.queue-count-pill{background:#92400e;color:white;border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;font-family:'JetBrains Mono',monospace;flex-shrink:0;}
+
+/* CARDS */
+.breadcrumb-pg{background:white;border:1px solid var(--gov-border);border-radius:6px;padding:6px 12px;font-size:11px;color:var(--gov-gray2);display:flex;align-items:center;gap:5px;margin-bottom:12px;}
+.bc-page{color:var(--gov-blue);font-weight:600;}
+.gov-card{background:white;border:1px solid var(--gov-border);border-radius:6px;margin-bottom:12px;}
+.gov-card-header{padding:8px 14px;border-bottom:1px solid var(--gov-border);display:flex;align-items:center;justify-content:space-between;background:var(--gov-blue-xs);}
+.gov-card-title{font-size:11px;font-weight:700;color:var(--gov-blue);text-transform:uppercase;letter-spacing:0.5px;display:flex;align-items:center;gap:5px;}
+.gov-card-title-hi{font-family:'Noto Sans Devanagari',sans-serif;font-size:10px;color:var(--gov-gray2);font-weight:400;}
+.gov-card-body{padding:12px 14px;}
+
+/* FORMS */
+.field{margin-bottom:10px;}
+.gov-label{display:block;font-size:11px;font-weight:600;color:var(--gov-gray2);margin-bottom:4px;}
+.req{color:var(--gov-red);}
+.gov-input,.gov-select,.gov-textarea{width:100%;padding:8px 10px;background:white;border:1px solid var(--gov-border);border-radius:4px;color:var(--gov-gray);font-family:'Noto Sans',sans-serif;font-size:13px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;-webkit-appearance:none;appearance:none;}
+.gov-input:focus,.gov-select:focus,.gov-textarea:focus{border-color:var(--gov-blue);box-shadow:0 0 0 2px rgba(26,86,160,0.12);}
+.gov-textarea{resize:vertical;min-height:68px;}
+.gov-input[type=number]::-webkit-outer-spin-button,.gov-input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;}
+.gov-input[type=number]{-moz-appearance:textfield;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* DISEASE TILES */
+.disease-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
+.dtile{background:var(--gov-bg);border:1px solid var(--gov-border);border-radius:6px;padding:10px;}
+.dtile-label{font-size:10px;font-weight:700;letter-spacing:0.4px;text-transform:uppercase;margin-bottom:6px;}
+.dtile-label.c{color:var(--gov-red);}
+.dtile-label.f{color:var(--gov-yellow);}
+.dtile-label.t{color:#7c3aed;}
+.dtile-label.o{color:var(--gov-blue);}
+.dtile .gov-input{text-align:center;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;padding:6px;}
+.dtile.active-c .gov-input:focus{border-color:var(--gov-red);}
+.dtile.active-f .gov-input:focus{border-color:var(--gov-yellow);}
+.dtile.active-t .gov-input:focus{border-color:#7c3aed;}
+
+/* SEVERITY */
+.sev-options{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.sev-opt{border-radius:6px;padding:10px 6px;text-align:center;border:1.5px solid var(--gov-border);cursor:pointer;transition:all 0.15s;background:white;}
+.sev-opt input[type=radio]{display:none;}
+.sev-opt-icon{font-size:18px;display:block;margin-bottom:3px;}
+.sev-opt-lbl{font-size:10px;font-weight:700;color:var(--gov-gray2);}
+.sev-opt.low.chosen{border-color:var(--gov-green);background:var(--gov-grn-lt);}
+.sev-opt.low.chosen .sev-opt-lbl{color:var(--gov-green);}
+.sev-opt.med.chosen{border-color:var(--gov-yellow);background:var(--gov-yel-lt);}
+.sev-opt.med.chosen .sev-opt-lbl{color:var(--gov-yellow);}
+.sev-opt.high.chosen{border-color:var(--gov-red);background:var(--gov-red-lt);}
+.sev-opt.high.chosen .sev-opt-lbl{color:var(--gov-red);}
+
+/* BUTTONS */
+.gov-btn{width:100%;padding:10px 16px;border-radius:4px;border:none;cursor:pointer;font-family:'Noto Sans',sans-serif;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.15s;}
+.gov-btn-primary{background:var(--gov-blue);color:white;}
+.gov-btn-primary:hover{background:var(--gov-blue2);}
+.gov-btn-danger{background:var(--gov-red);color:white;}
+.gov-btn-danger:hover{background:#b91c1c;}
+.gov-btn-success{background:var(--gov-green);color:white;}
+.gov-btn-outline{background:white;color:var(--gov-blue);border:1px solid var(--gov-blue);width:auto;padding:5px 12px;font-size:11px;}
+
+/* STAT CARDS */
+.stat-row-gov{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.stat-card-gov{background:white;border:1px solid var(--gov-border);border-radius:6px;padding:10px 12px;border-left:3px solid var(--gov-blue);display:flex;align-items:center;gap:8px;}
+.stat-card-gov.red{border-left-color:var(--gov-red);}
+.stat-card-gov.yellow{border-left-color:var(--gov-yellow);}
+.stat-card-gov.green{border-left-color:var(--gov-green);}
+.stat-icon-gov{font-size:18px;}
+.stat-val-gov{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1;}
+.stat-lbl-gov{font-size:10px;color:var(--gov-gray2);margin-top:1px;}
+
+/* PILLS */
+.gov-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;}
+.pill-safe{background:var(--gov-grn-lt);color:var(--gov-green);border:1px solid #86efac;}
+.pill-warn{background:var(--gov-yel-lt);color:var(--gov-yellow);border:1px solid #fcd34d;}
+.pill-danger{background:var(--gov-red-lt);color:var(--gov-red);border:1px solid #fca5a5;}
+.pill-offline{background:#f3f4f6;color:#6b7280;border:1px solid #d1d5db;}
+
+/* TOAST */
+.toast{position:fixed;bottom:14px;left:1rem;right:1rem;z-index:5000;padding:11px 14px;border-radius:6px;font-weight:600;font-size:13px;display:flex;align-items:center;gap:8px;opacity:0;transform:translateY(10px);pointer-events:none;transition:all 0.3s;box-shadow:0 4px 16px rgba(0,0,0,0.2);}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.ok{background:var(--gov-green);color:white;}
+.toast.err{background:var(--gov-red);color:white;}
+.toast.warn{background:var(--gov-yellow);color:white;}
+.toast.info{background:var(--gov-blue);color:white;}
+
+/* MANDATORY */
+.mandatory-box{background:var(--gov-yel-lt);border:1px solid #fcd34d;border-left:3px solid var(--gov-yellow);border-radius:4px;padding:10px 12px;font-size:11px;margin-bottom:12px;font-family:'JetBrains Mono',monospace;}
+.mandatory-box strong{color:var(--gov-yellow);display:block;margin-bottom:3px;font-family:'Noto Sans',sans-serif;}
+.mandatory-preview{color:var(--gov-gray2);font-size:10px;border-top:1px dashed #fcd34d;margin-top:5px;padding-top:5px;}
+.compose-wrap{margin-bottom:10px;position:relative;}
+.char-count{position:absolute;bottom:8px;right:10px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--gov-gray3);}
+
+/* LEVEL */
+.level-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.level-btn-gov{border-radius:6px;padding:9px 6px;text-align:center;border:1.5px solid var(--gov-border);cursor:pointer;font-family:'Noto Sans',sans-serif;font-size:10px;font-weight:700;transition:all 0.15s;background:white;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--gov-gray2);}
+.level-icon{font-size:16px;}
+.level-btn-gov.lv-normal.sel{border-color:var(--gov-green);background:var(--gov-grn-lt);color:var(--gov-green);}
+.level-btn-gov.lv-warn.sel{border-color:var(--gov-yellow);background:var(--gov-yel-lt);color:var(--gov-yellow);}
+.level-btn-gov.lv-emergency.sel{border-color:var(--gov-red);background:var(--gov-red-lt);color:var(--gov-red);}
+
+/* SMS ITEMS */
+.sms-item{border-radius:6px;padding:10px 12px;margin-bottom:8px;border:1px solid var(--gov-border);animation:fadeUp 0.3s ease forwards;opacity:0;}
+@keyframes fadeUp{to{opacity:1;}}
+.sms-item.red{background:var(--gov-red-lt);border-color:#fca5a5;}
+.sms-item.yellow{background:var(--gov-yel-lt);border-color:#fcd34d;}
+.sms-item.green{background:var(--gov-grn-lt);border-color:#86efac;}
+.sms-item.queued{background:#f9fafb;border:1px dashed #d1d5db;}
+.sms-item-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;gap:8px;}
+.sms-item-who{font-size:12px;font-weight:700;}
+.sms-item-who.red{color:var(--gov-red);}
+.sms-item-who.yellow{color:var(--gov-yellow);}
+.sms-item-who.green{color:var(--gov-green);}
+.sms-item-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gov-gray3);flex-shrink:0;}
+.sms-item-msg{font-size:11px;color:var(--gov-gray);line-height:1.5;}
+.sms-item-delivered{margin-top:4px;font-size:10px;color:var(--gov-blue);display:flex;align-items:center;gap:4px;}
+.live-dot{width:5px;height:5px;border-radius:50%;background:var(--gov-green);animation:pulse 1.5s infinite;}
+
+/* HISTORY */
+.hist-item{background:white;border:1px solid var(--gov-border);border-radius:6px;padding:12px;margin-bottom:10px;animation:fadeUp 0.3s ease forwards;opacity:0;}
+.hist-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.hist-worker{font-weight:700;font-size:13px;}
+.hist-village{font-size:10px;color:var(--gov-gray2);margin-top:2px;}
+.hist-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gov-gray3);text-align:right;}
+.hist-diseases{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px;}
+.hist-d{text-align:center;padding:5px 4px;background:var(--gov-bg);border-radius:4px;border:1px solid var(--gov-border);}
+.hist-d-val{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;}
+.hist-d-lbl{font-size:9px;color:var(--gov-gray3);margin-top:1px;}
+.hist-notes{font-size:11px;color:var(--gov-gray2);padding-top:7px;border-top:1px solid var(--gov-border);line-height:1.5;}
+
+/* DASHBOARD */
+.dash-total{background:linear-gradient(135deg,#0f3460 0%,#1a56a0 100%);color:white;border-radius:6px;padding:16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;}
+.dash-total-val{font-family:'JetBrains Mono',monospace;font-size:44px;font-weight:700;line-height:1;}
+.dash-total-lbl{font-size:11px;opacity:0.8;margin-top:4px;}
+.dbar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.dbar-label{width:58px;font-size:11px;color:var(--gov-gray2);font-weight:600;flex-shrink:0;}
+.dbar-track{flex:1;height:8px;background:var(--gov-bg);border-radius:4px;overflow:hidden;border:1px solid var(--gov-border);}
+.dbar-fill{height:100%;border-radius:4px;transition:width 1s ease;}
+.dbar-fill.c{background:var(--gov-red);}
+.dbar-fill.f{background:var(--gov-yellow);}
+.dbar-fill.t{background:#7c3aed;}
+.dbar-fill.o{background:var(--gov-blue);}
+.dbar-val{font-family:'JetBrains Mono',monospace;font-size:11px;width:20px;text-align:right;flex-shrink:0;}
+.status-row-gov{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+.status-tile-gov{background:white;border:1px solid var(--gov-border);border-radius:6px;padding:12px;text-align:center;}
+.status-tile-val{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:var(--gov-blue);line-height:1;}
+.status-tile-lbl{font-size:10px;color:var(--gov-gray2);margin-top:3px;}
+.act-item{display:flex;gap:8px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--gov-border);}
+.act-item:last-child{border-bottom:none;}
+.act-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.act-dot.red{background:var(--gov-red);}
+.act-dot.yellow{background:var(--gov-yellow);}
+.act-dot.green{background:var(--gov-green);}
+.act-text{font-size:12px;line-height:1.4;}
+.act-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--gov-gray3);margin-top:1px;}
+.empty-state{text-align:center;padding:24px;color:var(--gov-gray3);font-size:12px;}
+.empty-icon{font-size:26px;margin-bottom:6px;opacity:0.5;}
+.alert-count-badge{display:none;background:var(--gov-red);color:white;font-size:9px;font-weight:700;padding:1px 5px;border-radius:20px;margin-left:4px;}
+.alert-count-badge.show{display:inline-block;}
+
+/* AI RISK CARD */
+.ai-risk-card{background:linear-gradient(135deg,#1e1b4b,#312e81);color:white;border-radius:8px;padding:14px;margin-bottom:12px;display:none;}
+.ai-risk-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.6;margin-bottom:4px;}
+.ai-risk-val{font-size:28px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1;margin-bottom:4px;}
+.ai-risk-msg{font-size:11px;opacity:0.8;line-height:1.4;}
+.ai-risk-meter{height:4px;background:rgba(255,255,255,0.15);border-radius:2px;margin-top:10px;overflow:hidden;}
+.ai-risk-fill{height:100%;border-radius:2px;transition:width 1s ease;}
+
+/* WEATHER */
+.weather-strip{background:var(--gov-blue-xs);border:1px solid var(--gov-blue-lt);border-radius:6px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;}
+.weather-icon{font-size:24px;flex-shrink:0;}
+.weather-info{flex:1;}
+.weather-label{font-size:9px;font-weight:700;color:var(--gov-blue);text-transform:uppercase;letter-spacing:0.5px;}
+.weather-detail{font-size:11px;color:var(--gov-gray);margin-top:1px;font-weight:500;}
+.weather-advisory{font-size:10px;color:var(--gov-yellow);font-weight:600;margin-top:2px;}
+
+/* VOICE */
+.voice-btn{display:flex;align-items:center;gap:8px;background:var(--gov-blue-xs);border:1px solid var(--gov-blue-lt);border-radius:6px;padding:8px 12px;cursor:pointer;font-size:11px;font-weight:600;color:var(--gov-blue);margin-bottom:10px;width:100%;transition:all 0.15s;}
+.voice-btn.recording{background:var(--gov-red-lt);border-color:#fca5a5;color:var(--gov-red);animation:recPulse 1s infinite;}
+@keyframes recPulse{0%,100%{opacity:1}50%{opacity:0.7}}
+
+/* SYMPTOM CHIPS */
+.symptom-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.sym-chip{background:white;border:1px solid var(--gov-border);border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;transition:all 0.15s;color:var(--gov-gray2);font-weight:500;}
+.sym-chip.sel{background:var(--gov-blue);border-color:var(--gov-blue);color:white;}
+</style>
+</head>
+<body>
+
+<!-- OFFLINE BANNER -->
+<div id="offline-bar">
+  <div style="display:flex;align-items:center;gap:8px;"><span>📶</span><span id="offline-text">Offline Mode — Reports queued</span></div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <span class="sync-count" id="queue-count-badge">0 pending</span>
+    <div class="sync-spinner" id="sync-spinner"></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="gov-topbar" id="topbar">
+  <div class="gov-emblem">💧</div>
+  <div class="gov-title-block">
+    <div class="gov-title-hi" id="hdr-hi">जल स्वास्थ्य निरीक्षण — आशा पोर्टल</div>
+    <div class="gov-title-en">AquaGuard — ASHA Worker Portal</div>
+  </div>
+  <div class="lang-toggle">
+    <button class="lang-btn active" onclick="setLang('hi')" id="lb-hi">हिं</button>
+    <button class="lang-btn" onclick="setLang('en')" id="lb-en">EN</button>
+    <button class="lang-btn" onclick="setLang('mr')" id="lb-mr">मार</button>
+  </div>
+  <div class="worker-chip-gov" id="workerChip" style="display:none;">
+    <div class="worker-dot-gov"></div>
+    <div><div class="worker-name-chip" id="topName">—</div><div class="worker-village-chip" id="topVillage">गांव: —</div></div>
+  </div>
+  <div class="gov-live-badge"><span class="gov-live-dot"></span><span id="live-txt">LIVE</span></div>
+</div>
+
+<!-- NAV -->
+<nav class="gov-nav" id="goNav">
+  <button class="nav-btn-gov active" id="nb-home" onclick="goTo('home')">
+    <span class="nav-icon-gov">🏠</span><span data-key="nav_home">Home</span>
+  </button>
+  <button class="nav-btn-gov" id="nb-sms" onclick="goTo('sms')">
+    <span class="nav-badge-gov" id="nb-sms-badge">!</span>
+    <span class="nav-icon-gov">📱</span><span data-key="nav_sms">Alert</span>
+  </button>
+  <button class="nav-btn-gov" id="nb-history" onclick="goTo('history')">
+    <span class="nav-badge-gov" id="nb-hist-badge">!</span>
+    <span class="nav-icon-gov">📜</span><span data-key="nav_history">History</span>
+  </button>
+  <button class="nav-btn-gov" id="nb-dash" onclick="goTo('dash')">
+    <span class="nav-icon-gov">📊</span><span data-key="nav_dash">Dashboard</span>
+  </button>
+</nav>
+
+<div id="app">
+
+  <!-- HOME -->
+  <div class="page active" id="pg-home">
+    <div class="breadcrumb-pg">🏠 <span class="bc-page" data-key="bc_home">Field Report</span> — <span data-key="bc_home_sub">रिपोर्ट दर्ज करें</span></div>
+
+    <div class="queue-banner" id="queueBanner">
+      <div class="queue-banner-icon">📦</div>
+      <div class="queue-banner-text">
+        <strong data-key="offline_queued">Reports saved offline</strong>
+        <span data-key="offline_sub">Will sync when internet returns</span>
+      </div>
+      <div class="queue-count-pill" id="queueCountHome">0</div>
+    </div>
+
+    <!-- Weather Advisory -->
+    <div class="weather-strip">
+      <div class="weather-icon" id="wx-icon">🌤️</div>
+      <div class="weather-info">
+        <div class="weather-label" data-key="wx_label">Today's Water Risk Advisory</div>
+        <div class="weather-detail" id="wx-detail">Loading...</div>
+        <div class="weather-advisory" id="wx-advisory"></div>
+      </div>
+    </div>
+
+    <div class="stat-row-gov" id="quickStats" style="display:none;">
+      <div class="stat-card-gov"><div class="stat-icon-gov">📋</div><div><div class="stat-val-gov" id="qs-total">0</div><div class="stat-lbl-gov" data-key="qs_total">कुल Cases</div></div></div>
+      <div class="stat-card-gov green"><div class="stat-icon-gov">📤</div><div><div class="stat-val-gov" id="qs-reports">0</div><div class="stat-lbl-gov" data-key="qs_reports">Reports</div></div></div>
+      <div class="stat-card-gov red"><div class="stat-icon-gov">🔴</div><div><div class="stat-val-gov" id="qs-cholera">0</div><div class="stat-lbl-gov">Cholera</div></div></div>
+      <div class="stat-card-gov yellow"><div class="stat-icon-gov">🟡</div><div><div class="stat-val-gov" id="qs-fever">0</div><div class="stat-lbl-gov" data-key="qs_fever">Bukhar</div></div></div>
+    </div>
+
+    <div class="gov-card">
+      <div class="gov-card-header">
+        <div><div class="gov-card-title">👩‍⚕️ <span data-key="card_worker">ASHA Worker Details</span></div><div class="gov-card-title-hi" data-key="card_worker_sub">आशा कार्यकर्ता की जानकारी</div></div>
+      </div>
+      <div class="gov-card-body">
+        <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">
+          🎤 <span id="voice-btn-text" data-key="voice_fill">Voice se form bharein</span>
+        </button>
+        <div class="two-col">
+          <div class="field"><label class="gov-label"><span data-key="lbl_name">ASHA Ka Naam</span> <span class="req">*</span></label><input type="text" class="gov-input" id="f-name" placeholder="Poora naam" oninput="syncTop()"></div>
+          <div class="field"><label class="gov-label"><span data-key="lbl_village">Gaon</span> <span class="req">*</span></label><input type="text" class="gov-input" id="f-village" placeholder="Gaon ka naam" oninput="syncTop()"></div>
+        </div>
+        <div class="two-col">
+          <div class="field">
+            <label class="gov-label"><span data-key="lbl_district">Zila</span> <span class="req">*</span></label>
+            <select class="gov-select" id="f-district">
+              <option value="">-- Chunen --</option>
+              <option>Ajmer</option><option>Alwar</option><option>Banswara</option><option>Baran</option><option>Barmer</option><option>Bharatpur</option><option>Bhilwara</option><option>Bikaner</option><option>Chittorgarh</option><option>Churu</option><option>Dausa</option><option>Dholpur</option><option>Dungarpur</option><option>Hanumangarh</option><option>Jaipur</option><option>Jaisalmer</option><option>Jalore</option><option>Jhalawar</option><option>Jhunjhunu</option><option>Jodhpur</option><option>Karauli</option><option>Kota</option><option>Nagaur</option><option>Pali</option><option>Pratapgarh</option><option>Rajsamand</option><option>Sawai Madhopur</option><option>Sikar</option><option>Sirohi</option><option>Sri Ganganagar</option><option>Tonk</option><option>Udaipur</option>
+            </select>
+          </div>
+          <div class="field"><label class="gov-label"><span data-key="lbl_date">Taareekh</span></label><input type="date" class="gov-input" id="f-date"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Symptoms -->
+    <div class="gov-card">
+      <div class="gov-card-header"><div><div class="gov-card-title">⚡ <span data-key="card_quick">Quick Symptoms</span></div><div class="gov-card-title-hi" data-key="card_quick_sub">जल्दी लक्षण चुनें</div></div></div>
+      <div class="gov-card-body">
+        <div class="symptom-chips">
+          <div class="sym-chip" onclick="toggleSymptom(this,'Dast')">💩 Dast</div>
+          <div class="sym-chip" onclick="toggleSymptom(this,'Ulti')">🤮 Ulti</div>
+          <div class="sym-chip" onclick="toggleSymptom(this,'Tez Bukhar')">🌡️ Tez Bukhar</div>
+          <div class="sym-chip" onclick="toggleSymptom(this,'Paet Dard')">😖 Paet Dard</div>
+          <div class="sym-chip" onclick="toggleSymptom(this,'Kaanpna')">🥶 Kaanpna</div>
+          <div class="sym-chip" onclick="toggleSymptom(this,'Kamzori')">😮 Kamzori</div>
+          <div class="sym-chip" onclick="toggleSymptom(this,'Paani Dast')">💧 Paani Dast</div>
+          <div class="sym-chip" onclick="toggleSymptom(this,'Sir Dard')">🤕 Sir Dard</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gov-card">
+      <div class="gov-card-header"><div><div class="gov-card-title">🦠 <span data-key="card_cases">Bimari Cases</span></div><div class="gov-card-title-hi" data-key="card_cases_sub">गांव में बीमारी के मामले</div></div></div>
+      <div class="gov-card-body">
+        <div class="disease-grid">
+          <div class="dtile active-c"><div class="dtile-label c">🔴 <span data-key="dis_cholera">Cholera</span></div><input type="number" class="gov-input" id="f-cholera" placeholder="0" min="0" oninput="updateAIRisk()"></div>
+          <div class="dtile active-f"><div class="dtile-label f">🟡 <span data-key="dis_fever">Bukhar</span></div><input type="number" class="gov-input" id="f-fever" placeholder="0" min="0" oninput="updateAIRisk()"></div>
+          <div class="dtile active-t"><div class="dtile-label t">🟣 <span data-key="dis_typhoid">Typhoid</span></div><input type="number" class="gov-input" id="f-typhoid" placeholder="0" min="0" oninput="updateAIRisk()"></div>
+          <div class="dtile active-o"><div class="dtile-label o">🔵 <span data-key="dis_others">Others</span></div><input type="number" class="gov-input" id="f-others" placeholder="0" min="0" oninput="updateAIRisk()"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Risk -->
+    <div class="ai-risk-card" id="aiRiskCard">
+      <div class="ai-risk-label">🤖 AI Risk Assessment</div>
+      <div class="ai-risk-val" id="ai-risk-val">LOW</div>
+      <div class="ai-risk-msg" id="ai-risk-msg"></div>
+      <div class="ai-risk-meter"><div class="ai-risk-fill" id="ai-risk-fill" style="width:0%;background:#4ade80;"></div></div>
+    </div>
+
+    <div class="gov-card">
+      <div class="gov-card-header"><div><div class="gov-card-title">⚠️ <span data-key="card_sev">Gambhirta / Severity</span></div><div class="gov-card-title-hi" data-key="card_sev_sub">स्थिति की गंभीरता</div></div></div>
+      <div class="gov-card-body">
+        <div class="sev-options" id="sevOpts">
+          <label class="sev-opt low chosen" onclick="setSev('low',this)"><input type="radio" name="sev" value="low" checked><span class="sev-opt-icon">✅</span><span class="sev-opt-lbl" data-key="sev_low">Normal</span></label>
+          <label class="sev-opt med" onclick="setSev('med',this)"><input type="radio" name="sev" value="med"><span class="sev-opt-icon">⚠️</span><span class="sev-opt-lbl" data-key="sev_med">Madhyam</span></label>
+          <label class="sev-opt high" onclick="setSev('high',this)"><input type="radio" name="sev" value="high"><span class="sev-opt-icon">🚨</span><span class="sev-opt-lbl" data-key="sev_high">Gambhir</span></label>
+        </div>
+        <div class="field">
+          <label class="gov-label"><span data-key="lbl_notes">Vishesh Baat</span> (Optional)</label>
+          <textarea class="gov-textarea" id="f-notes" placeholder="Paani ki halat, symptoms..."></textarea>
+        </div>
+        <button class="gov-btn gov-btn-primary" onclick="submitReport()">📤 <span data-key="btn_submit">Report Submit Karo</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SMS -->
+  <div class="page" id="pg-sms">
+    <div class="breadcrumb-pg">📱 <span class="bc-page" data-key="bc_sms">SMS Alert</span> — <span data-key="bc_sms_sub">अलर्ट भेजें</span></div>
+    <div class="queue-banner" id="queueBannerSms">
+      <div class="queue-banner-icon">📦</div>
+      <div class="queue-banner-text"><strong data-key="offline_queued">Alerts offline saved</strong><span data-key="offline_sub">Will sync when online</span></div>
+      <div class="queue-count-pill" id="queueCountSms">0</div>
+    </div>
+    <div class="gov-card">
+      <div class="gov-card-header"><div><div class="gov-card-title">✍️ <span data-key="card_alert">Naya Alert Message</span></div><div class="gov-card-title-hi" data-key="card_alert_sub">नया अलर्ट संदेश लिखें</div></div></div>
+      <div class="gov-card-body">
+        <div class="mandatory-box">
+          <strong data-key="mandatory_hdr">⚠️ Mandatory Header — Auto Add:</strong>
+          <div class="mandatory-preview" id="mandatoryPreview">🚨 ASHA ALERT | Gaon: — | ASHA: — | Taareekh: —</div>
+        </div>
+        <div class="two-col" style="margin-bottom:10px;">
+          <div class="field" style="margin:0;"><label class="gov-label"><span data-key="lbl_name">Naam</span> <span class="req">*</span></label><input type="text" class="gov-input" id="sms-name" placeholder="Naam" oninput="syncSmsToHome();updatePreview();"></div>
+          <div class="field" style="margin:0;"><label class="gov-label"><span data-key="lbl_village">Gaon</span> <span class="req">*</span></label><input type="text" class="gov-input" id="sms-village" placeholder="Gaon" oninput="syncSmsToHome();updatePreview();"></div>
+        </div>
+        <div class="field" style="margin-bottom:6px;"><label class="gov-label" data-key="lbl_level">Alert Level</label></div>
+        <div class="level-row">
+          <div class="level-btn-gov lv-normal sel" data-level="green" onclick="setLevel(this)"><span class="level-icon">✅</span><span data-key="lv_normal">Normal</span></div>
+          <div class="level-btn-gov lv-warn" data-level="yellow" onclick="setLevel(this)"><span class="level-icon">⚠️</span><span data-key="lv_warn">Warning</span></div>
+          <div class="level-btn-gov lv-emergency" data-level="red" onclick="setLevel(this)"><span class="level-icon">🚨</span><span data-key="lv_emergency">Emergency</span></div>
+        </div>
+        <div class="compose-wrap">
+          <textarea class="gov-textarea" id="smsText" placeholder="Apna message yahan likhein..." maxlength="300" oninput="updateCharCount()" style="min-height:90px;"></textarea>
+          <div class="char-count" id="charCount">0 / 300</div>
+        </div>
+        <button class="gov-btn gov-btn-danger" onclick="sendAlert()">📤 <span data-key="btn_send_alert">Dashboard Par Alert Bhejo</span></button>
+      </div>
+    </div>
+    <div class="gov-card">
+      <div class="gov-card-header"><div><div class="gov-card-title">📋 <span data-key="card_sent">Bheje Gaye Alerts</span> <span class="alert-count-badge" id="sentBadge"></span></div></div><span style="font-size:10px;color:var(--gov-gray3);font-family:'JetBrains Mono',monospace;" id="sentCounter">0 bheje</span></div>
+      <div class="gov-card-body"><div id="smsFeed"><div class="empty-state"><div class="empty-icon">📭</div><span data-key="empty_alerts">Koi alert nahi bheja</span></div></div></div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="page" id="pg-history">
+    <div class="breadcrumb-pg">📜 <span class="bc-page" data-key="bc_history">Report History</span> — <span data-key="bc_history_sub">पुरानी रिपोर्टें</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-size:12px;font-weight:700;color:var(--gov-blue);text-transform:uppercase;letter-spacing:0.5px;" id="histCount">0 Reports</div>
+      <div style="display:flex;gap:6px;">
+        <button class="gov-btn gov-btn-outline" onclick="exportCSV()" id="exportBtn" style="display:none;">📥 Export CSV</button>
+        <button class="gov-btn gov-btn-outline" onclick="clearHistory()" id="clearHistBtn" style="display:none;">🗑️ Clear</button>
+      </div>
+    </div>
+    <div id="histFeed"><div class="empty-state"><div class="empty-icon">📋</div><span data-key="empty_history">Koi report nahi</span></div></div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="page" id="pg-dash">
+    <div class="breadcrumb-pg">📊 <span class="bc-page" data-key="bc_dash">Dashboard</span></div>
+    <div class="dash-total">
+      <div>
+        <div class="dash-total-val" id="d-total">0</div>
+        <div class="dash-total-lbl" data-key="d_total_lbl">Total Cases Reported</div>
+        <div style="font-size:10px;opacity:0.6;margin-top:3px;" id="d-lastUpdate">Koi report nahi</div>
+      </div>
+      <div style="text-align:right;"><div style="font-size:32px;">🏥</div><div style="font-size:9px;opacity:0.6;margin-top:3px;">Jal Jeevan Mission</div></div>
+    </div>
+    <div class="gov-card">
+      <div class="gov-card-header"><div><div class="gov-card-title">📈 <span data-key="card_trend">Disease Breakdown</span></div></div></div>
+      <div class="gov-card-body">
+        <div class="dbar-row"><div class="dbar-label">🔴 Cholera</div><div class="dbar-track"><div class="dbar-fill c" id="db-c" style="width:0%"></div></div><div class="dbar-val" id="dv-c">0</div></div>
+        <div class="dbar-row"><div class="dbar-label">🟡 Fever</div><div class="dbar-track"><div class="dbar-fill f" id="db-f" style="width:0%"></div></div><div class="dbar-val" id="dv-f">0</div></div>
+        <div class="dbar-row"><div class="dbar-label">🟣 Typhoid</div><div class="dbar-track"><div class="dbar-fill t" id="db-t" style="width:0%"></div></div><div class="dbar-val" id="dv-t">0</div></div>
+        <div class="dbar-row"><div class="dbar-label">🔵 Others</div><div class="dbar-track"><div class="dbar-fill o" id="db-o" style="width:0%"></div></div><div class="dbar-val" id="dv-o">0</div></div>
+      </div>
+    </div>
+    <div class="status-row-gov">
+      <div class="status-tile-gov"><div class="status-tile-val" id="d-reports">0</div><div class="status-tile-lbl" data-key="d_reports">Reports</div></div>
+      <div class="status-tile-gov"><div class="status-tile-val" id="d-sms">0</div><div class="status-tile-lbl">SMS Alerts</div></div>
+      <div class="status-tile-gov" style="border-left:3px solid var(--gov-red);"><div class="status-tile-val" id="d-critical" style="color:var(--gov-red);">0</div><div class="status-tile-lbl" data-key="d_critical">Critical</div></div>
+      <div class="status-tile-gov" style="border-left:3px solid var(--gov-yellow);"><div class="status-tile-val" id="d-villages" style="color:var(--gov-yellow);">0</div><div class="status-tile-lbl" data-key="d_villages">Villages</div></div>
+    </div>
+    <!-- Offline sync card -->
+    <div class="gov-card" id="offlineDashCard" style="display:none;">
+      <div class="gov-card-header"><div><div class="gov-card-title">📦 Offline Queue</div></div></div>
+      <div class="gov-card-body">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><span style="font-size:12px;">Pending sync reports</span><span class="queue-count-pill" id="dashQueueCount" style="background:var(--gov-yellow);color:white;">0</span></div>
+        <button class="gov-btn gov-btn-success" onclick="forceSyncNow()">🔄 Sync Karo Abhi</button>
+      </div>
+    </div>
+    <div class="gov-card">
+      <div class="gov-card-header"><div><div class="gov-card-title">⚡ <span data-key="card_activity">Recent Activity</span></div></div></div>
+      <div class="gov-card-body"><div id="activityFeed"><div class="empty-state"><div class="empty-icon">📊</div><span data-key="empty_activity">Koi activity nahi</span></div></div></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"><span id="t-icon"></span><span id="t-msg"></span></div>
+
+<script>
+// ═══════════════════════════════════════
+// LANGUAGE SYSTEM
+// ═══════════════════════════════════════
+const LANGS = {
+  hi:{
+    nav_home:'होम',nav_sms:'अलर्ट',nav_history:'इतिहास',nav_dash:'डैशबोर्ड',
+    bc_home:'फील्ड रिपोर्ट',bc_home_sub:'रिपोर्ट दर्ज करें',bc_sms:'SMS अलर्ट',bc_sms_sub:'अलर्ट भेजें',
+    bc_history:'रिपोर्ट इतिहास',bc_history_sub:'पुरानी रिपोर्टें',bc_dash:'डैशबोर्ड',
+    card_worker:'ASHA कार्यकर्ता विवरण',card_worker_sub:'आशा कार्यकर्ता की जानकारी',
+    card_quick:'त्वरित लक्षण',card_quick_sub:'जल्दी लक्षण चुनें',
+    card_cases:'बीमारी के मामले',card_cases_sub:'गांव में बीमारी',
+    card_sev:'गंभीरता',card_sev_sub:'स्थिति की गंभीरता',
+    card_alert:'नया अलर्ट',card_alert_sub:'नया अलर्ट संदेश लिखें',
+    card_sent:'भेजे गए अलर्ट',card_trend:'बीमारी विश्लेषण',card_activity:'हाल की गतिविधि',
+    lbl_name:'आशा का नाम',lbl_village:'गांव',lbl_district:'जिला',lbl_date:'तारीख',
+    lbl_notes:'विशेष जानकारी',lbl_level:'अलर्ट स्तर',
+    dis_cholera:'हैजा / Cholera',dis_fever:'बुखार / Fever',dis_typhoid:'टाइफाइड',dis_others:'अन्य',
+    sev_low:'सामान्य',sev_med:'मध्यम',sev_high:'गंभीर',
+    btn_submit:'रिपोर्ट भेजें',btn_send_alert:'डैशबोर्ड पर भेजें',
+    lv_normal:'सामान्य',lv_warn:'चेतावनी',lv_emergency:'आपातकाल',
+    mandatory_hdr:'⚠️ अनिवार्य हेडर — स्वचालित:',
+    offline_queued:'रिपोर्ट ऑफलाइन सेव',offline_sub:'इंटरनेट आने पर सिंक होगी',
+    wx_label:'आज का जल जोखिम परामर्श',
+    qs_total:'कुल मामले',qs_reports:'रिपोर्ट',qs_fever:'बुखार',
+    d_total_lbl:'कुल दर्ज मामले',d_reports:'रिपोर्ट',d_critical:'गंभीर',d_villages:'गांव',
+    empty_alerts:'कोई अलर्ट नहीं',empty_history:'कोई रिपोर्ट नहीं',empty_activity:'कोई गतिविधि नहीं',
+    voice_fill:'आवाज से फॉर्म भरें',
+    hdr_hi:'जल स्वास्थ्य निरीक्षण — आशा पोर्टल',live_txt:'सक्रिय',
+    t_ok:'✅ रिपोर्ट जमा!',t_high:'🚨 गंभीर! अलर्ट गया!',t_offline:'📦 ऑफलाइन — सेव हुई',
+    t_synced:'☁️ सिंक हो गई!',t_name:'अपना नाम लिखें!',t_village:'गांव का नाम लिखें!',t_msg:'संदेश खाली है!',
+  },
+  en:{
+    nav_home:'Home',nav_sms:'Alert',nav_history:'History',nav_dash:'Dashboard',
+    bc_home:'Field Report',bc_home_sub:'Submit Report',bc_sms:'SMS Alert',bc_sms_sub:'Send Alert',
+    bc_history:'Report History',bc_history_sub:'Past Reports',bc_dash:'Dashboard',
+    card_worker:'ASHA Worker Details',card_worker_sub:'Worker information',
+    card_quick:'Quick Symptoms',card_quick_sub:'Tap to select symptoms',
+    card_cases:'Disease Cases',card_cases_sub:'Village disease cases',
+    card_sev:'Severity',card_sev_sub:'Situation severity',
+    card_alert:'New Alert',card_alert_sub:'Write a new alert',
+    card_sent:'Sent Alerts',card_trend:'Disease Breakdown',card_activity:'Recent Activity',
+    lbl_name:'ASHA Name',lbl_village:'Village',lbl_district:'District',lbl_date:'Date',
+    lbl_notes:'Special Notes',lbl_level:'Alert Level',
+    dis_cholera:'Cholera / हैजा',dis_fever:'Fever / बुखार',dis_typhoid:'Typhoid',dis_others:'Others',
+    sev_low:'Normal',sev_med:'Moderate',sev_high:'Critical',
+    btn_submit:'Submit Report',btn_send_alert:'Send to Dashboard',
+    lv_normal:'Normal',lv_warn:'Warning',lv_emergency:'Emergency',
+    mandatory_hdr:'⚠️ Mandatory Header — Auto Added:',
+    offline_queued:'Reports saved offline',offline_sub:'Will sync when online',
+    wx_label:"Today's Water Risk Advisory",
+    qs_total:'Total Cases',qs_reports:'Reports',qs_fever:'Fever',
+    d_total_lbl:'Total Cases Reported',d_reports:'Reports',d_critical:'Critical',d_villages:'Villages',
+    empty_alerts:'No alerts sent yet',empty_history:'No reports yet',empty_activity:'No activity yet',
+    voice_fill:'Fill form by voice',
+    hdr_hi:'Water Health Surveillance — ASHA Portal',live_txt:'LIVE',
+    t_ok:'✅ Report submitted!',t_high:'🚨 Critical! Alert sent!',t_offline:'📦 Offline — saved locally',
+    t_synced:'☁️ All synced!',t_name:'Please enter your name!',t_village:'Please enter village!',t_msg:'Message is empty!',
+  },
+  mr:{
+    nav_home:'घर',nav_sms:'सूचना',nav_history:'इतिहास',nav_dash:'डैशबोर्ड',
+    bc_home:'खेत रिपोर्ट',bc_home_sub:'रिपोर्ट दर्ज करो',bc_sms:'सूचना',bc_sms_sub:'सूचना भेजो',
+    bc_history:'रिपोर्ट इतिहास',bc_history_sub:'पुरानी रिपोर्ट',bc_dash:'डैशबोर्ड',
+    card_worker:'आशा कार्यकर्ता जाणकारी',card_worker_sub:'आशा कार्यकर्ता री जाणकारी',
+    card_quick:'जल्दी लक्षण',card_quick_sub:'लक्षण चुनो',
+    card_cases:'बीमारी रा मामला',card_cases_sub:'गांव में बीमारी',
+    card_sev:'गंभीरता',card_sev_sub:'हालत री गंभीरता',
+    card_alert:'नयो अलर्ट',card_alert_sub:'नयो अलर्ट लिखो',
+    card_sent:'भेजिया अलर्ट',card_trend:'बीमारी विश्लेषण',card_activity:'ताजी गतिविधि',
+    lbl_name:'आशा रो नाम',lbl_village:'गांव',lbl_district:'जिलो',lbl_date:'तारीख',
+    lbl_notes:'खास बात',lbl_level:'अलर्ट स्तर',
+    dis_cholera:'हैजो / Cholera',dis_fever:'बुखार / Fever',dis_typhoid:'टाइफाइड',dis_others:'दूजा',
+    sev_low:'सामान्य',sev_med:'मध्यम',sev_high:'गंभीर',
+    btn_submit:'रिपोर्ट भेजो',btn_send_alert:'डैशबोर्ड पर भेजो',
+    lv_normal:'सामान्य',lv_warn:'चेतावनी',lv_emergency:'आपातकाल',
+    mandatory_hdr:'⚠️ जरूरी हेडर — अपने आप:',
+    offline_queued:'रिपोर्ट ऑफलाइन सेव',offline_sub:'इंटरनेट आयां सिंक होसी',
+    wx_label:'आज रो जल जोखिम परामर्श',
+    qs_total:'कुल मामला',qs_reports:'रिपोर्ट',qs_fever:'बुखार',
+    d_total_lbl:'कुल मामला',d_reports:'रिपोर्ट',d_critical:'गंभीर',d_villages:'गांव',
+    empty_alerts:'कोई अलर्ट नहीं',empty_history:'कोई रिपोर्ट नहीं',empty_activity:'कोई गतिविधि नहीं',
+    voice_fill:'बोल\'र फॉर्म भरो',
+    hdr_hi:'जल सेवा निगरानी — आशा पोर्टल',live_txt:'सक्रिय',
+    t_ok:'✅ रिपोर्ट जमा हो गी!',t_high:'🚨 गंभीर! अलर्ट गयो!',t_offline:'📦 ऑफलाइन — सेव हो गी',
+    t_synced:'☁️ सारी सिंक हो गी!',t_name:'आपरो नाम लिखो!',t_village:'गांव रो नाम लिखो!',t_msg:'संदेश खाली है!',
+  }
+};
+
+let currentLang = localStorage.getItem('asha_lang') || 'hi';
+function t(key){ return (LANGS[currentLang]||{})[key] || (LANGS.en||{})[key] || key; }
+
+function setLang(lang){
+  currentLang = lang;
+  localStorage.setItem('asha_lang', lang);
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('lb-'+lang).classList.add('active');
+  applyLang();
+}
+
+function applyLang(){
+  document.querySelectorAll('[data-key]').forEach(el => {
+    const v = t(el.getAttribute('data-key'));
+    if(v) el.textContent = v;
+  });
+  document.getElementById('hdr-hi').textContent = t('hdr_hi');
+  document.getElementById('live-txt').textContent = t('live_txt') || 'LIVE';
+  updatePreview();
+}
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+const state = {
+  currentLevel:'green', severity:'low', smsCount:0, criticals:0, reports:0,
+  totals:{cholera:0,fever:0,typhoid:0,others:0},
+  villages:new Set(), historyItems:[], selectedSymptoms:new Set(),
+  isOnline:navigator.onLine, voiceActive:false,
+};
+
+// ═══════════════════════════════════════
+// INDEXED DB
+// ═══════════════════════════════════════
+let db;
+const DB_NAME='AquaGuardOffline', DB_VER=1;
+const STORE_R='pending_reports', STORE_A='pending_alerts';
+
+function initDB(){
+  return new Promise((res,rej)=>{
+    const req=indexedDB.open(DB_NAME,DB_VER);
+    req.onupgradeneeded=e=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains(STORE_R)) d.createObjectStore(STORE_R,{keyPath:'id',autoIncrement:true});
+      if(!d.objectStoreNames.contains(STORE_A)) d.createObjectStore(STORE_A,{keyPath:'id',autoIncrement:true});
+    };
+    req.onsuccess=e=>{db=e.target.result;res(db);};
+    req.onerror=()=>rej(req.error);
+  });
+}
+function dbAdd(store,data){return new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');const req=tx.objectStore(store).add(data);req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error);});}
+function dbGetAll(store){return new Promise((res,rej)=>{const tx=db.transaction(store,'readonly');const req=tx.objectStore(store).getAll();req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error);});}
+function dbDelete(store,id){return new Promise((res,rej)=>{const tx=db.transaction(store,'readwrite');const req=tx.objectStore(store).delete(id);req.onsuccess=()=>res();req.onerror=()=>rej(req.error);});}
+async function dbCount(store){return (await dbGetAll(store)).length;}
+
+// ═══════════════════════════════════════
+// ONLINE / OFFLINE
+// ═══════════════════════════════════════
+function updateOnlineStatus(){
+  const wasOnline = state.isOnline;
+  state.isOnline = navigator.onLine;
+  const bar = document.getElementById('offline-bar');
+  const topbar = document.getElementById('topbar');
+  const nav = document.getElementById('goNav');
+  const app = document.getElementById('app');
+  if(!state.isOnline){
+    bar.classList.add('show');
+    topbar.style.top='32px'; nav.style.top='92px'; app.style.top='136px';
+    document.getElementById('live-txt').textContent='📶 Offline';
+  } else {
+    bar.classList.remove('show');
+    topbar.style.top='0'; nav.style.top='60px'; app.style.top='104px';
+    document.getElementById('live-txt').textContent=t('live_txt')||'LIVE';
+    if(!wasOnline) syncOfflineQueue();
+  }
+  updateQueueUI();
+}
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+async function updateQueueUI(){
+  if(!db) return;
+  const rc = await dbCount(STORE_R);
+  const ac = await dbCount(STORE_A);
+  const total = rc + ac;
+  document.getElementById('queue-count-badge').textContent = total+' pending';
+  document.getElementById('queueCountHome').textContent = total;
+  document.getElementById('queueCountSms').textContent = total;
+  document.getElementById('dashQueueCount').textContent = total;
+  const show = total > 0;
+  document.getElementById('queueBanner').classList.toggle('show', show);
+  document.getElementById('queueBannerSms').classList.toggle('show', show);
+  document.getElementById('offlineDashCard').style.display = show ? 'block' : 'none';
+}
+
+const FB_R = "https://aqua-82fea-default-rtdb.firebaseio.com/asha_reports.json";
+const FB_A = "https://aqua-82fea-default-rtdb.firebaseio.com/asha_alerts.json";
+
+async function syncOfflineQueue(){
+  if(!state.isOnline||!db) return;
+  document.getElementById('sync-spinner').style.display='block';
+  try{
+    for(const r of await dbGetAll(STORE_R)){
+      const{id,...data}=r;
+      try{const res=await fetch(FB_R,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...data,synced:true,syncedAt:new Date().toISOString()})});if(res.ok)await dbDelete(STORE_R,id);}catch(e){}
+    }
+    for(const a of await dbGetAll(STORE_A)){
+      const{id,...data}=a;
+      try{const res=await fetch(FB_A,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...data,synced:true,syncedAt:new Date().toISOString()})});if(res.ok)await dbDelete(STORE_A,id);}catch(e){}
+    }
+    const rem = (await dbCount(STORE_R))+(await dbCount(STORE_A));
+    if(rem===0) showToast(t('t_synced'),'ok');
+    await updateQueueUI();
+  }finally{document.getElementById('sync-spinner').style.display='none';}
+}
+
+async function forceSyncNow(){
+  if(!state.isOnline){showToast('📶 Internet nahi hai!','err');return;}
+  await syncOfflineQueue();
+}
+
+async function bridgeSaveReport(r){
+  const payload={...r,savedAt:new Date().toISOString()};
+  if(state.isOnline) fetch(FB_R,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).catch(()=>{});
+  else{await dbAdd(STORE_R,payload);await updateQueueUI();}
+}
+async function bridgeSave(name,village,msg,level){
+  const payload={name,village,msg,level,time:new Date().toISOString()};
+  if(state.isOnline) fetch(FB_A,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).catch(()=>{});
+  else{await dbAdd(STORE_A,payload);await updateQueueUI();}
+}
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function goTo(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn-gov').forEach(b=>b.classList.remove('active'));
+  document.getElementById('pg-'+page).classList.add('active');
+  document.getElementById('nb-'+page).classList.add('active');
+  if(page==='dash'){refreshDash();animateDashBars();}
+}
+
+// ═══════════════════════════════════════
+// WEATHER
+// ═══════════════════════════════════════
+async function loadWeather(){
+  try{
+    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=26.45&longitude=74.64&current=temperature_2m,precipitation,weathercode&daily=precipitation_sum&timezone=Asia/Kolkata&forecast_days=1');
+    const d=await r.json();
+    const temp=Math.round(d.current.temperature_2m);
+    const rain=d.daily.precipitation_sum[0];
+    let icon='🌤️',advisory='';
+    if(rain>20){icon='🌧️';advisory=currentLang==='en'?'⚠️ Heavy rain — high waterborne disease risk!':'⚠️ भारी बारिश — जलजनित बीमारी का खतरा!';}
+    else if(rain>5){icon='🌦️';advisory=currentLang==='en'?'⚠️ Rain — monitor water sources':'⚠️ बारिश — पानी के स्रोत जांचें';}
+    else if(temp>40){icon='🌡️';advisory=currentLang==='en'?'⚠️ Extreme heat — dehydration risk':'⚠️ अत्यधिक गर्मी — डिहाइड्रेशन';}
+    else{advisory=currentLang==='en'?'✅ Conditions normal':'✅ मौसम सामान्य';}
+    document.getElementById('wx-icon').textContent=icon;
+    document.getElementById('wx-detail').textContent=`${temp}°C | Rain: ${rain}mm | Ajmer`;
+    document.getElementById('wx-advisory').textContent=advisory;
+  }catch(e){
+    document.getElementById('wx-detail').textContent=state.isOnline?'Unavailable':'📶 Offline';
+  }
+}
+
+// ═══════════════════════════════════════
+// AI RISK
+// ═══════════════════════════════════════
+function updateAIRisk(){
+  const c=parseInt(document.getElementById('f-cholera').value)||0;
+  const f=parseInt(document.getElementById('f-fever').value)||0;
+  const ty=parseInt(document.getElementById('f-typhoid').value)||0;
+  const o=parseInt(document.getElementById('f-others').value)||0;
+  const total=c+f+ty+o;
+  const card=document.getElementById('aiRiskCard');
+  if(total===0){card.style.display='none';return;}
+  card.style.display='block';
+  const weighted=(c*3)+(ty*3)+f+(o*1.5);
+  const score=Math.min(100,Math.round((weighted/30)*100));
+  let risk,color,msg;
+  if(score>=70||c>=3||ty>=3){risk='CRITICAL';color='#dc2626';msg=currentLang==='en'?'Outbreak risk! Immediate action required.':'गंभीर प्रकोप! तुरंत कार्रवाई जरूरी।';autoSetSev('high');}
+  else if(score>=40){risk='HIGH';color='#d97706';msg=currentLang==='en'?'High risk. Monitor closely.':'उच्च जोखिम। नज़र रखें।';autoSetSev('med');}
+  else if(score>=15){risk='MODERATE';color='#f59e0b';msg=currentLang==='en'?'Moderate risk. Continue surveillance.':'मध्यम जोखिम।';}
+  else{risk='LOW';color='#16a34a';msg=currentLang==='en'?'Low risk. Routine reporting.':'कम जोखिम।';}
+  document.getElementById('ai-risk-val').textContent=risk;
+  document.getElementById('ai-risk-val').style.color=color;
+  document.getElementById('ai-risk-msg').textContent=msg;
+  document.getElementById('ai-risk-fill').style.width=score+'%';
+  document.getElementById('ai-risk-fill').style.background=color;
+}
+
+function autoSetSev(level){
+  const opts=document.querySelectorAll('.sev-opt');
+  opts.forEach(o=>o.classList.remove('chosen'));
+  const idx=level==='high'?2:level==='med'?1:0;
+  if(opts[idx]){opts[idx].classList.add('chosen');state.severity=level;opts[idx].querySelector('input').checked=true;}
+}
+
+// ═══════════════════════════════════════
+// SYMPTOMS
+// ═══════════════════════════════════════
+function toggleSymptom(el,name){
+  el.classList.toggle('sel');
+  if(el.classList.contains('sel')) state.selectedSymptoms.add(name);
+  else state.selectedSymptoms.delete(name);
+  const notes=document.getElementById('f-notes');
+  const base=notes.value.replace(/\nSelected symptoms:.*/s,'').trim();
+  notes.value=state.selectedSymptoms.size>0?base+(base?'\n':'')+'Selected symptoms: '+[...state.selectedSymptoms].join(', '):base;
+}
+
+// ═══════════════════════════════════════
+// VOICE INPUT
+// ═══════════════════════════════════════
+let recognition=null;
+function toggleVoice(){
+  if(!('webkitSpeechRecognition' in window)&&!('SpeechRecognition' in window)){showToast('Voice not supported','err');return;}
+  if(state.voiceActive){recognition&&recognition.stop();return;}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recognition=new SR();
+  recognition.lang=currentLang==='en'?'en-IN':'hi-IN';
+  recognition.onstart=()=>{state.voiceActive=true;document.getElementById('voiceBtn').classList.add('recording');document.getElementById('voice-btn-text').textContent='🔴 Bol rahe hain...';};
+  recognition.onresult=e=>{
+    const tx=e.results[0][0].transcript;
+    document.getElementById('f-notes').value+=(document.getElementById('f-notes').value?' ':'')+tx;
+    showToast('🎤 Voice record hui!','ok');
+  };
+  recognition.onend=()=>{state.voiceActive=false;document.getElementById('voiceBtn').classList.remove('recording');document.getElementById('voice-btn-text').textContent=t('voice_fill');};
+  recognition.onerror=()=>{showToast('Voice error','err');state.voiceActive=false;document.getElementById('voiceBtn').classList.remove('recording');};
+  recognition.start();
+}
+
+// ═══════════════════════════════════════
+// FORM SYNC
+// ═══════════════════════════════════════
+function syncTop(){
+  const name=document.getElementById('f-name').value.trim();
+  const village=document.getElementById('f-village').value.trim();
+  const chip=document.getElementById('workerChip');
+  if(name||village){
+    chip.style.display='flex';
+    document.getElementById('topName').textContent=name||'—';
+    document.getElementById('topVillage').textContent=(currentLang==='en'?'Village: ':'गांव: ')+(village||'—');
+    document.getElementById('quickStats').style.display='grid';
+    document.getElementById('sms-name').value=name;
+    document.getElementById('sms-village').value=village;
+    updatePreview();
+  }else{chip.style.display='none';document.getElementById('quickStats').style.display='none';}
+}
+function syncSmsToHome(){
+  document.getElementById('f-name').value=document.getElementById('sms-name').value;
+  document.getElementById('f-village').value=document.getElementById('sms-village').value;
+  syncTop();
+}
+function setSev(val,el){state.severity=val;document.querySelectorAll('.sev-opt').forEach(o=>o.classList.remove('chosen'));el.classList.add('chosen');}
+function setLevel(el){document.querySelectorAll('.level-btn-gov').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');state.currentLevel=el.dataset.level;}
+function updateCharCount(){document.getElementById('charCount').textContent=document.getElementById('smsText').value.length+' / 300';}
+function updatePreview(){
+  const name=document.getElementById('sms-name').value.trim()||'—';
+  const village=document.getElementById('sms-village').value.trim()||'—';
+  const d=new Date().toLocaleDateString(currentLang==='en'?'en-IN':'hi-IN');
+  document.getElementById('mandatoryPreview').textContent=`🚨 ASHA ALERT | Gaon: ${village} | ASHA: ${name} | Taareekh: ${d}`;
+}
+
+// ═══════════════════════════════════════
+// SUBMIT REPORT
+// ═══════════════════════════════════════
+async function submitReport(){
+  const name=document.getElementById('f-name').value.trim();
+  const village=document.getElementById('f-village').value.trim();
+  const district=document.getElementById('f-district').value;
+  const date=document.getElementById('f-date').value||new Date().toLocaleDateString('en-IN');
+  const timeStr=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  const c=parseInt(document.getElementById('f-cholera').value)||0;
+  const f=parseInt(document.getElementById('f-fever').value)||0;
+  const ty=parseInt(document.getElementById('f-typhoid').value)||0;
+  const o=parseInt(document.getElementById('f-others').value)||0;
+  const notes=document.getElementById('f-notes').value.trim();
+  const sev=state.severity;
+  const total=c+f+ty+o;
+  if(!name){showToast(t('t_name'),'err');return;}
+  if(!village){showToast(t('t_village'),'err');return;}
+  if(!district){showToast('Zila chunen!','err');return;}
+  state.reports++;state.totals.cholera+=c;state.totals.fever+=f;state.totals.typhoid+=ty;state.totals.others+=o;state.villages.add(village);
+  const reportObj={worker_name:name,village,district,date,timeStr,cholera:c,fever:f,typhoid:ty,others:o,total,severity:sev,notes,symptoms:[...state.selectedSymptoms]};
+  addHistItem({name,village,district,date,timeStr,c,f,t:ty,o,sev,notes});
+  if(sev==='high'||c>=3||ty>=3){
+    const autoMsg=`🚨 AUTO-ALERT | ${village},${district} | HIGH | C:${c} F:${f} T:${ty} O:${o} | Total:${total}`;
+    await dispatchSMS(name,village,autoMsg,'red',true);
+    document.getElementById('nb-sms-badge').classList.add('show');
+  }
+  await bridgeSave(name,village,`ASHA REPORT|${village},${district}|Cases:${total}|${sev.toUpperCase()}`,sev==='high'?'red':sev==='med'?'yellow':'green');
+  await bridgeSaveReport(reportObj);
+  ['f-cholera','f-fever','f-typhoid','f-others','f-notes'].forEach(id=>document.getElementById(id).value='');
+  autoSetSev('low');state.selectedSymptoms.clear();document.querySelectorAll('.sym-chip').forEach(c=>c.classList.remove('sel'));
+  document.getElementById('aiRiskCard').style.display='none';
+  refreshQuickStats();
+  showToast(!state.isOnline?t('t_offline'):sev==='high'?t('t_high'):t('t_ok'),!state.isOnline?'warn':sev==='high'?'warn':'ok');
+}
+
+// ═══════════════════════════════════════
+// SEND ALERT
+// ═══════════════════════════════════════
+async function sendAlert(){
+  const name=document.getElementById('sms-name').value.trim();
+  const village=document.getElementById('sms-village').value.trim();
+  const msg=document.getElementById('smsText').value.trim();
+  if(!name){showToast(t('t_name'),'err');return;}
+  if(!village){showToast(t('t_village'),'err');return;}
+  if(!msg){showToast(t('t_msg'),'err');return;}
+  const d=new Date().toLocaleDateString(currentLang==='en'?'en-IN':'hi-IN');
+  const fullMsg=`🚨 ASHA ALERT | Gaon: ${village} | ASHA: ${name} | Taareekh: ${d}\n\n${msg}`;
+  await dispatchSMS(name,village,fullMsg,state.currentLevel,false);
+  await bridgeSave(name,village,fullMsg,state.currentLevel);
+  document.getElementById('smsText').value='';document.getElementById('charCount').textContent='0 / 300';
+  syncTop();showToast(state.isOnline?'📤 Alert bhej diya!':t('t_offline'),state.isOnline?'ok':'warn');
+}
+
+async function dispatchSMS(name,village,msg,level,isAuto){
+  const feed=document.getElementById('smsFeed');
+  const empty=feed.querySelector('.empty-state');if(empty)empty.remove();
+  state.smsCount++;if(level==='red')state.criticals++;
+  document.getElementById('sentCounter').textContent=state.smsCount+' bheje';
+  document.getElementById('d-sms').textContent=state.smsCount;
+  document.getElementById('d-critical').textContent=state.criticals;
+  const icons={red:'🔴',yellow:'🟡',green:'✅'};
+  const timeStr=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  const div=document.createElement('div');
+  const cls=state.isOnline?level:'queued';
+  div.className=`sms-item ${cls}`;
+  const delivLabel=state.isOnline
+    ?`<div class="sms-item-delivered"><span class="live-dot"></span>Dashboard par deliver hua</div>`
+    :`<div style="margin-top:4px;font-size:10px;color:var(--gov-gray3);">📦 Offline — sync pending</div>`;
+  div.innerHTML=`<div class="sms-item-head"><div class="sms-item-who ${level}">${icons[level]||'📦'} ${name} — ${village}${isAuto?' <span style="font-size:9px;background:rgba(220,38,38,0.15);padding:1px 4px;border-radius:3px;color:var(--gov-red);">AUTO</span>':''}</div><div class="sms-item-time">${timeStr}</div></div><div class="sms-item-msg">${msg}</div>${delivLabel}`;
+  feed.insertBefore(div,feed.firstChild);
+  const badge=document.getElementById('sentBadge');badge.textContent=state.smsCount;badge.classList.add('show');
+  addActivity(level,`SMS: ${village} — ${msg.substring(0,50)}...`,timeStr);
+}
+
+// ═══════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════
+function addHistItem(e){
+  const feed=document.getElementById('histFeed');
+  const empty=feed.querySelector('.empty-state');if(empty)empty.remove();
+  const isHigh=e.sev==='high',isMed=e.sev==='med';
+  const chip=isHigh?'<span class="gov-pill pill-danger">🚨 Gambhir</span>':isMed?'<span class="gov-pill pill-warn">⚠️ Madhyam</span>':'<span class="gov-pill pill-safe">✅ Normal</span>';
+  const offPill=!state.isOnline?'<span class="gov-pill pill-offline" style="margin-left:4px;">📦 Offline</span>':'';
+  const bl=isHigh?'var(--gov-red)':isMed?'var(--gov-yellow)':'var(--gov-green)';
+  const div=document.createElement('div');div.className='hist-item';div.style.borderLeft=`3px solid ${bl}`;
+  div.innerHTML=`<div class="hist-head"><div><div class="hist-worker">${e.name}</div><div class="hist-village">${e.village}, ${e.district}</div></div><div><div class="hist-time">${e.timeStr}<br>${e.date}</div><div style="margin-top:4px;text-align:right;">${chip}${offPill}</div></div></div><div class="hist-diseases"><div class="hist-d"><div class="hist-d-val" style="color:var(--gov-red)">${e.c}</div><div class="hist-d-lbl">Cholera</div></div><div class="hist-d"><div class="hist-d-val" style="color:var(--gov-yellow)">${e.f}</div><div class="hist-d-lbl">Fever</div></div><div class="hist-d"><div class="hist-d-val" style="color:#7c3aed">${e.t}</div><div class="hist-d-lbl">Typhoid</div></div><div class="hist-d"><div class="hist-d-val" style="color:var(--gov-blue)">${e.o}</div><div class="hist-d-lbl">Others</div></div></div>${e.notes?`<div class="hist-notes">📝 ${e.notes}</div>`:''}`;
+  feed.insertBefore(div,feed.firstChild);
+  state.historyItems.unshift(e);
+  document.getElementById('histCount').textContent=state.historyItems.length+' Reports';
+  document.getElementById('clearHistBtn').style.display='inline-flex';
+  document.getElementById('exportBtn').style.display='inline-flex';
+  document.getElementById('nb-hist-badge').classList.add('show');
+}
+function clearHistory(){if(!confirm('Saari history delete karni hai?'))return;document.getElementById('histFeed').innerHTML='<div class="empty-state"><div class="empty-icon">📋</div>Koi report nahi</div>';document.getElementById('histCount').textContent='0 Reports';document.getElementById('clearHistBtn').style.display='none';document.getElementById('exportBtn').style.display='none';state.historyItems=[];}
+
+// ═══════════════════════════════════════
+// CSV EXPORT
+// ═══════════════════════════════════════
+function exportCSV(){
+  if(!state.historyItems.length)return;
+  const h=['Name','Village','District','Date','Time','Cholera','Fever','Typhoid','Others','Total','Severity','Notes'];
+  const rows=state.historyItems.map(e=>[e.name,e.village,e.district,e.date,e.timeStr,e.c,e.f,e.t,e.o,e.c+e.f+e.t+e.o,e.sev,'"'+(e.notes||'').replace(/"/g,"'")+'"']);
+  const csv=[h,...rows].map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=`ASHA_Reports_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+  showToast('📥 CSV download ho raha!','ok');
+}
+
+// ═══════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════
+function refreshDash(){
+  const{cholera:c,fever:f,typhoid:ty,others:o}=state.totals;
+  document.getElementById('d-total').textContent=c+f+ty+o;
+  document.getElementById('d-reports').textContent=state.reports;
+  document.getElementById('d-sms').textContent=state.smsCount;
+  document.getElementById('d-critical').textContent=state.criticals;
+  document.getElementById('d-villages').textContent=state.villages.size;
+  document.getElementById('d-lastUpdate').textContent='Last: '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('dv-c').textContent=c;document.getElementById('dv-f').textContent=f;
+  document.getElementById('dv-t').textContent=ty;document.getElementById('dv-o').textContent=o;
+}
+function animateDashBars(){
+  const{cholera:c,fever:f,typhoid:ty,others:o}=state.totals;
+  const max=Math.max(c,f,ty,o,1);
+  document.getElementById('db-c').style.width=(c/max*100)+'%';
+  document.getElementById('db-f').style.width=(f/max*100)+'%';
+  document.getElementById('db-t').style.width=(ty/max*100)+'%';
+  document.getElementById('db-o').style.width=(o/max*100)+'%';
+}
+function refreshQuickStats(){
+  const{cholera:c,fever:f,typhoid:ty,others:o}=state.totals;
+  document.getElementById('qs-total').textContent=c+f+ty+o;
+  document.getElementById('qs-reports').textContent=state.reports;
+  document.getElementById('qs-cholera').textContent=c;
+  document.getElementById('qs-fever').textContent=f;
+}
+function addActivity(level,text,time){
+  const feed=document.getElementById('activityFeed');
+  const empty=feed.querySelector('.empty-state');if(empty)empty.remove();
+  const div=document.createElement('div');div.className='act-item';
+  div.innerHTML=`<div class="act-dot ${level}"></div><div><div class="act-text">${text}</div><div class="act-time">${time}</div></div>`;
+  feed.insertBefore(div,feed.firstChild);
+  const items=feed.querySelectorAll('.act-item');if(items.length>10)items[items.length-1].remove();
+}
+
+// ═══════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════
+let toastTimer;
+function showToast(msg,type='ok'){
+  clearTimeout(toastTimer);
+  const toast=document.getElementById('toast');
+  const icons={ok:'✅',err:'❌',warn:'⚠️',info:'ℹ️'};
+  document.getElementById('t-icon').textContent=icons[type]||'ℹ️';
+  document.getElementById('t-msg').textContent=msg;
+  toast.className=`toast show ${type}`;
+  toastTimer=setTimeout(()=>{toast.className='toast '+type;},3200);
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+async function init(){
+  document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
+  try{await initDB();}catch(e){console.warn('IndexedDB unavailable:',e);}
+  setLang(currentLang);
+  updateOnlineStatus();
+  loadWeather();
+  await updateQueueUI();
+}
+
+init();
+</script>
+</body>
+</html>

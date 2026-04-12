@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>AquaGuard — Smart Water Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;700;800&family=Noto+Sans+Gujarati:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================
+   AQUAGUARD v2 — CSS VARIABLES & RESET
+   ============================================ */
+:root{
+  --blue-dark:#0A2E6E;
+  --blue:#1565C0;
+  --blue-light:#1E88E5;
+  --orange:#D4680A;
+  --orange-light:#F5A623;
+  --green:#1B7C3A;
+  --green-light:#27AE60;
+  --red:#B71C1C;
+  --red-light:#E53935;
+  --yellow:#F57F17;
+  --yellow-light:#FFC107;
+  --bg:#F0EAD8;
+  --card-bg:#fff;
+  --text:#1A0F08;
+  --text-muted:#6B5744;
+  --border:#D7C9B0;
+  --shadow:0 2px 12px rgba(0,0,0,0.10);
+  --radius:14px;
+  --radius-sm:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Mukta',sans-serif;background:var(--bg);min-height:100vh;padding-bottom:90px;overflow-x:hidden;}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.header{
+  background:linear-gradient(135deg,var(--blue-dark) 0%,var(--blue) 100%);
+  padding:12px 16px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 2px 12px rgba(0,0,0,0.25);
+}
+.header-left{display:flex;align-items:center;gap:10px;}
+.logo{width:40px;height:40px;background:rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;border:1px solid rgba(255,255,255,0.2);}
+.app-name{color:#fff;font-size:1.05rem;font-weight:800;letter-spacing:0.5px;}
+.app-sub{color:rgba(255,255,255,0.65);font-size:0.62rem;}
+.header-right{display:flex;align-items:center;gap:8px;}
+.live-badge{display:flex;align-items:center;gap:4px;}
+.live-dot{width:8px;height:8px;border-radius:50%;background:#69F0AE;animation:blink 1.5s infinite;}
+.live-txt{color:#69F0AE;font-size:0.65rem;font-weight:700;}
+.time-txt{color:rgba(255,255,255,0.6);font-size:0.65rem;}
+/* Offline badge */
+.offline-badge{background:#E53935;color:#fff;font-size:0.6rem;font-weight:800;padding:3px 8px;border-radius:20px;display:none;}
+.offline-badge.show{display:block;}
+
+/* ============================================
+   LANGUAGE BAR
+   ============================================ */
+.lang-bar{background:#0D47A1;padding:8px 12px;display:flex;gap:8px;align-items:center;overflow-x:auto;border-bottom:3px solid var(--orange);}
+.lang-bar::-webkit-scrollbar{display:none;}
+.lang-lbl{color:rgba(255,255,255,0.4);font-size:0.6rem;white-space:nowrap;}
+.lpill{border:1.5px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);border-radius:20px;padding:6px 16px;font-size:0.78rem;font-family:'Mukta',sans-serif;cursor:pointer;white-space:nowrap;transition:all 0.2s;}
+.lpill.on{background:var(--orange);border-color:var(--orange-light);color:#fff;font-weight:700;}
+
+/* ============================================
+   PAGES
+   ============================================ */
+.page{display:none;padding:14px;animation:fadeIn 0.3s ease;}
+.page.on{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes pulse{0%,100%{box-shadow:0 4px 20px rgba(0,0,0,0.15)}50%{box-shadow:0 0 0 8px rgba(229,57,53,0.25)}}
+@keyframes slideIn{from{transform:translateY(-40px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+
+/* ============================================
+   WATER STATUS CARD (Feature 6: Animation)
+   ============================================ */
+.water-card{
+  border-radius:18px;padding:22px;display:flex;align-items:center;gap:16px;
+  margin-bottom:16px;transition:all 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  position:relative;overflow:hidden;
+}
+.water-card::before{
+  content:'';position:absolute;top:-50%;right:-20%;width:180px;height:180px;
+  border-radius:50%;background:rgba(255,255,255,0.08);
+}
+.water-card.safe{background:linear-gradient(135deg,#0D5C2A,var(--green-light));box-shadow:0 6px 24px rgba(27,124,58,0.4);}
+.water-card.danger{background:linear-gradient(135deg,#7B0000,var(--red-light));animation:pulse 2s infinite;}
+.water-card.risk{background:linear-gradient(135deg,#7F4500,var(--orange));box-shadow:0 6px 24px rgba(212,104,10,0.4);}
+.w-icon{font-size:3.2rem;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2));transition:all 0.4s;}
+.w-txt{flex:1;}
+.w-title{font-size:1.25rem;font-weight:800;color:#fff;line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.w-sub{font-size:0.73rem;color:rgba(255,255,255,0.85);margin-top:6px;line-height:1.4;}
+
+/* ============================================
+   SECTION HEADERS
+   ============================================ */
+.sec{font-size:0.68rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#8D6E63;margin:18px 0 10px;display:flex;align-items:center;gap:8px;}
+.sec::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ============================================
+   FEATURE 2: AI EXPLANATION CARD
+   ============================================ */
+.ai-card{
+  background:#fff;border-radius:var(--radius);padding:16px;margin-bottom:14px;
+  box-shadow:var(--shadow);border-left:4px solid var(--blue-light);
+  display:none; /* shown when unsafe */
+}
+.ai-card.show{display:block;animation:fadeIn 0.4s ease;}
+.ai-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.ai-badge{background:var(--blue);color:#fff;font-size:0.6rem;font-weight:800;padding:3px 10px;border-radius:20px;letter-spacing:0.5px;}
+.ai-title{font-size:0.85rem;font-weight:800;color:var(--text);}
+.ai-reason{background:#FFF3E0;border-radius:8px;padding:10px 12px;font-size:0.78rem;color:#5D3A00;line-height:1.5;border-left:3px solid var(--orange);}
+
+/* ============================================
+   FEATURE 1: WHATSAPP SHARE
+   ============================================ */
+.wa-btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  background:#25D366;color:#fff;border-radius:var(--radius-sm);
+  padding:14px;font-size:0.9rem;font-weight:700;text-decoration:none;
+  margin-bottom:10px;box-shadow:0 4px 12px rgba(37,211,102,0.35);
+  transition:transform 0.2s,box-shadow 0.2s;
+  border:none;cursor:pointer;width:100%;font-family:'Mukta',sans-serif;
+}
+.wa-btn:active{transform:scale(0.97);}
+.wa-btn-icon{font-size:1.4rem;}
+
+
+/* ============================================
+   FEATURE 4: OFFLINE + SMS FALLBACK
+   ============================================ */
+.acard{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;display:flex;gap:12px;box-shadow:var(--shadow);border-left:4px solid;}
+.acard.r{border-color:var(--red-light);}
+.acard.y{border-color:var(--orange-light);}
+.acard.g{border-color:var(--green-light);}
+.adot{width:10px;height:10px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+.adot.r{background:var(--red-light);animation:blink 1s infinite;}
+.adot.y{background:var(--orange-light);}
+.adot.g{background:var(--green-light);}
+.atitle{font-size:0.88rem;font-weight:700;color:var(--text);}
+.adesc{font-size:0.75rem;color:var(--text-muted);margin-top:3px;line-height:1.4;}
+.asev{display:inline-block;font-size:0.6rem;font-weight:800;padding:2px 8px;border-radius:20px;margin-top:5px;letter-spacing:0.5px;}
+.asev.r{background:#FFEBEE;color:var(--red-light);}
+.asev.y{background:#FFF8E1;color:var(--yellow);}
+.asev.g{background:#E8F5E9;color:var(--green);}
+.adist{font-size:0.68rem;color:var(--blue);font-weight:700;margin-top:4px;}
+.notice{background:#FFF8E1;border:1px solid #FFE082;border-radius:10px;padding:12px;font-size:0.78rem;color:#5D4037;line-height:1.6;margin-top:4px;}
+
+/* ============================================
+   FEATURE 4: OFFLINE + SMS FALLBACK
+   ============================================ */
+.offline-banner{
+  background:linear-gradient(135deg,#37474F,#546E7A);
+  border-radius:var(--radius-sm);padding:12px 14px;
+  display:flex;align-items:center;gap:10px;margin-bottom:14px;
+  display:none;
+}
+.offline-banner.show{display:flex;}
+.offline-icon{font-size:1.4rem;}
+.offline-txt{flex:1;color:#fff;}
+.offline-main{font-size:0.82rem;font-weight:700;}
+.offline-sub{font-size:0.68rem;opacity:0.8;margin-top:2px;}
+.offline-time{font-size:0.6rem;opacity:0.6;margin-top:1px;}
+
+/* ============================================
+   FEATURE 5: GAMIFICATION
+   ============================================ */
+.score-card{
+  background:linear-gradient(135deg,var(--blue-dark),var(--blue));
+  border-radius:18px;padding:18px;margin-bottom:14px;color:#fff;
+  box-shadow:0 6px 20px rgba(10,46,110,0.4);
+}
+.score-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.score-village{font-size:0.7rem;opacity:0.7;font-weight:700;text-transform:uppercase;letter-spacing:1px;}
+.score-num{font-size:2.8rem;font-weight:800;line-height:1;}
+.score-label{font-size:0.65rem;opacity:0.7;margin-top:2px;}
+.badge-box{background:rgba(255,255,255,0.15);border-radius:12px;padding:8px 14px;text-align:center;border:1px solid rgba(255,255,255,0.2);}
+.badge-icon{font-size:1.8rem;}
+.badge-name{font-size:0.65rem;font-weight:800;margin-top:2px;}
+.progress-bar-bg{background:rgba(255,255,255,0.2);border-radius:20px;height:10px;overflow:hidden;margin-bottom:6px;}
+.progress-bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#69F0AE,#00E676);transition:width 1.2s cubic-bezier(0.34,1.56,0.64,1);}
+.score-hint{font-size:0.65rem;opacity:0.7;display:flex;justify-content:space-between;}
+
+.leaderboard{background:#fff;border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);}
+.lb-title{font-size:0.78rem;font-weight:800;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.lb-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--border);}
+.lb-row:last-child{border:none;}
+.lb-rank{font-size:0.78rem;font-weight:800;color:var(--text-muted);width:20px;}
+.lb-rank.top{color:var(--orange);}
+.lb-name{flex:1;font-size:0.85rem;font-weight:700;color:var(--text);}
+.lb-score-bar{display:flex;align-items:center;gap:8px;}
+.lb-bar-bg{width:80px;height:6px;background:#F0EAD8;border-radius:20px;overflow:hidden;}
+.lb-bar-fill{height:100%;border-radius:20px;background:var(--green-light);}
+.lb-score-num{font-size:0.78rem;font-weight:800;color:var(--green);}
+
+/* ============================================
+   ASHA & HEALTH CARDS
+   ============================================ */
+.ashacard{background:#fff;border-radius:12px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);}
+.asha-av{width:48px;height:48px;border-radius:50%;background:var(--bg);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;}
+.asha-inf{flex:1;}
+.asha-nm{font-size:0.9rem;font-weight:700;color:var(--text);}
+.asha-pl{font-size:0.72rem;color:var(--text-muted);margin-top:2px;}
+.asha-btns{display:flex;flex-direction:column;gap:6px;}
+.callbtn{background:var(--blue);color:#fff;border-radius:20px;padding:8px 16px;font-size:0.78rem;font-weight:700;text-decoration:none;white-space:nowrap;text-align:center;}
+.wa-small{background:#25D366;color:#fff;border-radius:20px;padding:8px 12px;font-size:0.72rem;font-weight:700;text-decoration:none;white-space:nowrap;text-align:center;border:none;cursor:pointer;font-family:'Mukta',sans-serif;}
+
+.helpbox{background:linear-gradient(135deg,var(--blue),var(--blue-light));border-radius:16px;padding:20px;text-align:center;color:#fff;margin-top:8px;}
+.help-num{font-size:2.5rem;font-weight:800;letter-spacing:4px;}
+.help-tag{font-size:0.72rem;opacity:0.8;margin-top:6px;}
+.help-free{font-size:0.65rem;opacity:0.6;margin-top:4px;}
+
+.hcard{background:#fff;border-radius:12px;padding:13px 14px;margin-bottom:10px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow);}
+.h-ic{font-size:1.8rem;flex-shrink:0;}
+.h-inf{flex:1;}
+.h-nm{font-size:0.88rem;font-weight:700;color:var(--text);}
+.h-meta{font-size:0.7rem;color:var(--text-muted);margin-top:2px;}
+.h-open{color:var(--green);font-weight:700;}
+.h-ph{color:var(--blue);font-size:0.8rem;font-weight:700;text-decoration:none;display:block;margin-top:4px;}
+
+.tipsbox{background:#E8F5E9;border:1px solid #A5D6A7;border-radius:14px;padding:16px;}
+.tips-hd{font-size:0.85rem;font-weight:700;color:var(--green);margin-bottom:10px;}
+.tiprow{display:flex;align-items:center;gap:10px;font-size:0.82rem;color:var(--text);padding:8px 0;border-bottom:1px dashed #C8E6C9;}
+.tiprow:last-child{border:none;}
+
+/* ============================================
+   BOTTOM NAV
+   ============================================ */
+.bnav{
+  position:fixed;bottom:0;left:0;right:0;background:#fff;
+  border-top:1px solid #E0D6C4;display:flex;z-index:200;
+  box-shadow:0 -4px 20px rgba(0,0,0,0.12);
+}
+.bitem{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px;cursor:pointer;border:none;background:none;gap:3px;border-top:3px solid transparent;transition:all 0.2s;}
+.bitem .bic{font-size:1.5rem;}
+.bitem .blbl{font-size:0.6rem;font-weight:700;color:#aaa;}
+.bitem.on{border-top-color:var(--orange);}
+.bitem.on .blbl{color:var(--orange);}
+.bitem.on .bic{transform:scale(1.1);}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">💧</div>
+    <div>
+      <div class="app-name">AquaGuard</div>
+      <div class="app-sub" id="app-sub">ग्रामीण जल स्वास्थ्य</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="offline-badge" id="offline-badge">OFFLINE</div>
+    <div class="live-badge">
+      <div class="live-dot" id="live-dot"></div>
+      <span class="live-txt" id="live-txt">LIVE</span>
+      <span class="time-txt" id="clk">—</span>
+    </div>
+  </div>
+</div>
+
+<!-- LANGUAGE BAR -->
+<div class="lang-bar">
+  <span class="lang-lbl">🌐</span>
+  <button class="lpill on" id="lb-hi" onclick="setLang('hi')">हिंदी</button>
+  <button class="lpill" id="lb-raj" onclick="setLang('raj')">राजस्थानी</button>
+  <button class="lpill" id="lb-guj" onclick="setLang('guj')">ગુજરાતી</button>
+  <button class="lpill" id="lb-en" onclick="setLang('en')">English</button>
+</div>
+
+<!-- ============================================
+     PAGE: HOME
+     ============================================ -->
+<div class="page on" id="pg-home">
+  <div style="height:14px;"></div>
+
+  <!-- Feature 4: Offline Banner -->
+  <div class="offline-banner" id="offline-banner">
+    <div class="offline-icon">📡</div>
+    <div class="offline-txt">
+      <div class="offline-main" id="offline-main">ऑफलाइन मोड</div>
+      <div class="offline-sub" id="offline-sub">अंतिम जानकारी दिखाई जा रही है</div>
+      <div class="offline-time" id="offline-time"></div>
+    </div>
+  </div>
+
+  <!-- Water Status Card -->
+  <div class="water-card safe" id="wcard">
+    <div class="w-icon" id="wicon">✅</div>
+    <div class="w-txt">
+      <div class="w-title" id="wtitle">पानी पीने योग्य है</div>
+      <div class="w-sub" id="wsub">AI: सभी मापदंड WHO सीमाओं के भीतर।</div>
+    </div>
+  </div>
+
+  <!-- Feature 2: AI Explanation Card -->
+  <div class="ai-card" id="ai-card">
+    <div class="ai-header">
+      <span class="ai-badge">🤖 AI ANALYSIS</span>
+      <span class="ai-title" id="ai-title">जल विश्लेषण</span>
+    </div>
+    <div class="ai-reason" id="ai-reason"></div>
+  </div>
+
+  <!-- Nearby Alerts Summary -->
+  <div class="sec">📢 <span id="s-alert">ताज़ा सूचना</span></div>
+  <div id="home-alerts-container">
+    <!-- Populated dynamically -->
+  </div>
+</div>
+
+<!-- ============================================
+     PAGE: ASHA WORKERS
+     ============================================ -->
+<div class="page" id="pg-asha">
+  <div style="height:14px;"></div>
+  <div class="sec">👩‍⚕️ <span id="s-asha">आशा कार्यकर्ता</span></div>
+
+  <div class="ashacard">
+    <div class="asha-av">👩</div>
+    <div class="asha-inf">
+      <div class="asha-nm">Sunita Devi</div>
+      <div class="asha-pl">📍 Kankroli, Rajsamand</div>
+    </div>
+    <div class="asha-btns">
+      <a class="callbtn" href="tel:9876543210">📞 <span class="clbl">कॉल</span></a>
+      <button class="wa-small" onclick="shareAshaWhatsApp('Sunita Devi','Kankroli')">💬 WhatsApp</button>
+    </div>
+  </div>
+
+  <div class="ashacard">
+    <div class="asha-av">👩</div>
+    <div class="asha-inf">
+      <div class="asha-nm">Kavita Sharma</div>
+      <div class="asha-pl">📍 Jhalawar</div>
+    </div>
+    <div class="asha-btns">
+      <a class="callbtn" href="tel:9887654321">📞 <span class="clbl">कॉल</span></a>
+      <button class="wa-small" onclick="shareAshaWhatsApp('Kavita Sharma','Jhalawar')">💬 WhatsApp</button>
+    </div>
+  </div>
+
+  <div class="ashacard">
+    <div class="asha-av">👩</div>
+    <div class="asha-inf">
+      <div class="asha-nm">Rekha Meena</div>
+      <div class="asha-pl">📍 Bhim, Rajsamand</div>
+    </div>
+    <div class="asha-btns">
+      <a class="callbtn" href="tel:9765432109">📞 <span class="clbl">कॉल</span></a>
+      <button class="wa-small" onclick="shareAshaWhatsApp('Rekha Meena','Bhim')">💬 WhatsApp</button>
+    </div>
+  </div>
+
+  <div class="helpbox">
+    <div class="help-tag" id="s-helpline">🆘 राष्ट्रीय स्वास्थ्य हेल्पलाइन</div>
+    <div class="help-num">📞 104</div>
+    <div class="help-free" id="s-free">निःशुल्क · 24×7 · Free</div>
+  </div>
+</div>
+
+<!-- ============================================
+     PAGE: HEALTH CENTERS
+     ============================================ -->
+<div class="page" id="pg-health">
+  <div style="height:14px;"></div>
+  <div class="sec">🏥 <span id="s-health">नजदीकी स्वास्थ्य केंद्र</span></div>
+  <div class="hcard"><div class="h-ic">🏥</div><div class="h-inf"><div class="h-nm">CHC Kankroli</div><div class="h-meta">📍 2.4 km · <span class="h-open">24×7</span></div><a class="h-ph" href="tel:02952233456">📞 02952-233456</a></div></div>
+  <div class="hcard"><div class="h-ic">🏨</div><div class="h-inf"><div class="h-nm">PHC Bhim</div><div class="h-meta">📍 5.1 km · <span class="h-open">8AM–2PM</span></div><a class="h-ph" href="tel:02954220011">📞 02954-220011</a></div></div>
+  <div class="hcard"><div class="h-ic">🏥</div><div class="h-inf"><div class="h-nm">District Hospital Rajsamand</div><div class="h-meta">📍 14 km · <span class="h-open">24×7</span></div><a class="h-ph" href="tel:02952220100">📞 02952-220100</a></div></div>
+  <div class="hcard"><div class="h-ic">🚑</div><div class="h-inf"><div class="h-nm" id="s-amb">108 — मुफ्त एंबुलेंस</div><div class="h-meta"><span class="h-open">24×7 · Free</span></div><a class="h-ph" href="tel:108" style="font-size:1rem;">📞 108</a></div></div>
+  <div style="height:14px;"></div>
+  <div class="tipsbox">
+    <div class="tips-hd" id="s-tips">💡 सुरक्षित पानी के उपाय</div>
+    <div class="tiprow">🔥 <span id="t1">पानी को 5 मिनट उबालें</span></div>
+    <div class="tiprow">💊 <span id="t2">क्लोरीन टैबलेट डालें</span></div>
+    <div class="tiprow">🫙 <span id="t3">ढका बर्तन उपयोग करें</span></div>
+    <div class="tiprow">🖐️ <span id="t4">पीने से पहले हाथ धोएं</span></div>
+  </div>
+</div>
+
+<!-- ============================================
+     PAGE: GAMIFICATION (Feature 5)
+     ============================================ -->
+<div class="page" id="pg-score">
+  <div style="height:14px;"></div>
+  <div class="sec">🏆 <span id="s-score">जल सुरक्षा स्कोर</span></div>
+
+  <div class="score-card">
+    <div class="score-top">
+      <div>
+        <div class="score-village" id="score-village-label">KANKROLI गाँव</div>
+        <div class="score-num" id="score-num">78</div>
+        <div class="score-label" id="score-label">/ 100 अंक</div>
+      </div>
+      <div class="badge-box" id="badge-box">
+        <div class="badge-icon" id="badge-icon">🛡️</div>
+        <div class="badge-name" id="badge-name">SAFE VILLAGE</div>
+      </div>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="score-bar" style="width:78%"></div>
+    </div>
+    <div class="score-hint">
+      <span id="score-hint-l">0 — खतरा</span>
+      <span id="score-hint-r">100 — सुरक्षित</span>
+    </div>
+  </div>
+
+  <!-- Leaderboard -->
+  <div class="leaderboard">
+    <div class="lb-title">🏅 <span id="s-leaderboard">गाँव रैंकिंग — राजसमंद</span></div>
+    <div id="lb-rows">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bnav">
+  <button class="bitem on" id="bn-home" onclick="goPage('home')"><span class="bic">🏠</span><span class="blbl" id="n-home">होम</span></button>
+  <button class="bitem" id="bn-asha" onclick="goPage('asha')"><span class="bic">👩‍⚕️</span><span class="blbl" id="n-asha">आशा</span></button>
+  <button class="bitem" id="bn-health" onclick="goPage('health')"><span class="bic">🏥</span><span class="blbl" id="n-health">केंद्र</span></button>
+  <button class="bitem" id="bn-score" onclick="goPage('score')"><span class="bic">🏆</span><span class="blbl" id="n-score">स्कोर</span></button>
+</div>
+
+<script>
+/* ============================================
+   MODULE: DATA (Feature: Mock + Firebase)
+   Simulated data with real Firebase fallback
+   ============================================ */
+var MOCK_DATA = {
+  water: {
+    drinkable: false,
+    ph: 5.5,
+    tds: 920,
+    turbidity: 13.2,
+    village: 'Kankroli'
+  },
+  alerts: [
+    { location: 'Kankroli', type: 'Cholera', distance: '3km', severity: 'high', cases: 12 },
+    { location: 'Bhim', type: 'Typhoid', distance: '7km', severity: 'medium', cases: 5 },
+    { location: 'Nathdwara', type: 'Diarrhea', distance: '12km', severity: 'low', cases: 7 },
+    { location: 'Devgarh', type: 'Safe Zone', distance: '18km', severity: 'safe', cases: 0 }
+  ],
+  score: {
+    village: 'Kankroli',
+    points: 78,
+    leaderboard: [
+      { name: 'Nathdwara', points: 95 },
+      { name: 'Devgarh',   points: 89 },
+      { name: 'Amet',      points: 83 },
+      { name: 'Kankroli',  points: 78 },
+      { name: 'Bhim',      points: 61 },
+      { name: 'Railmagra', points: 54 }
+    ]
+  }
+};
+
+/* ============================================
+   MODULE: STATE
+   ============================================ */
+var STATE = {
+  lang: 'hi',
+  drinkable: true,
+  isOffline: false,
+  lastFetch: null,
+  data: MOCK_DATA
+};
+
+/* ============================================
+   MODULE: TRANSLATIONS
+   ============================================ */
+var L = {
+  hi: {
+    sub:'ग्रामीण जल स्वास्थ्य',
+    safe:'पानी पीने योग्य है',unsafe:'पानी मत पियो — खतरनाक!',risk:'सावधान — जांच जारी है',
+    aisafe:'AI: सभी मापदंड WHO सीमाओं के भीतर।',aiunsafe:'AI: प्रदूषण मिला! आशा को बुलाएं।',
+    salert:'ताज़ा सूचना',sallalert:'सरकारी सूचनाएं',sasha:'आशा कार्यकर्ता',
+    shealth:'नजदीकी स्वास्थ्य केंद्र',sscore:'जल सुरक्षा स्कोर',sleaderboard:'गाँव रैंकिंग — राजसमंद',
+    nhome:'होम',nalerts:'सूचनाएं',nasha:'आशा',nhealth:'केंद्र',nscore:'स्कोर',
+    notice:'⚠️ पानी में बदबू हो या गंदा दिखे — मत पियो! तुरंत आशा को बुलाएं।',
+    call:'कॉल',helpline:'🆘 राष्ट्रीय स्वास्थ्य हेल्पलाइन',free:'निःशुल्क · 24×7',
+    amb:'108 — मुफ्त एंबुलेंस',tips:'💡 सुरक्षित पानी के उपाय',
+    t1:'पानी को 5 मिनट उबालें',t2:'क्लोरीन टैबलेट डालें',t3:'ढका बर्तन उपयोग करें',t4:'पीने से पहले हाथ धोएं',
+    wa_btn:'WhatsApp पर अलर्ट भेजें',
+    ai_title:'जल विश्लेषण',legend_title:'स्थिति संकेत',
+    leg_safe:'सुरक्षित',leg_risk:'सावधान',leg_unsafe:'खतरनाक',
+    offline_main:'ऑफलाइन मोड',offline_sub:'अंतिम जानकारी दिखाई जा रही है',
+    score_label:'/ 100 अंक',badge_safe:'SAFE VILLAGE',badge_risk:'RISK ZONE',badge_danger:'DANGER ZONE',
+    score_hint_l:'0 — खतरा',score_hint_r:'100 — सुरक्षित',
+    sev_high:'🔴 उच्च जोखिम',sev_med:'🟡 मध्यम जोखिम',sev_low:'🟢 कम जोखिम',sev_safe:'✅ सुरक्षित',
+    ai_reason_tds:'उच्च TDS ({val} mg/L): पानी में अत्यधिक घुले खनिज हैं जो किडनी और पेट को नुकसान पहुंचा सकते हैं।',
+    ai_reason_ph:'कम pH ({val}): पानी अम्लीय है। इससे दस्त, उल्टी और दांतों की समस्या हो सकती है।',
+    ai_reason_turb:'उच्च गंदलापन ({val} NTU): पानी में मिट्टी/बैक्टीरिया मिले हैं। इससे हैजा और टाइफाइड का खतरा है।',
+  },
+  raj: {
+    sub:'गाँव रो पाणी री देखभाळ',
+    safe:'पाणी पीवण लायक है',unsafe:'पाणी मत पियो — खतरनाक!',risk:'सावधान — जांच जारी है',
+    aisafe:'AI: सगळा माप WHO री सीमा मांय है।',aiunsafe:'AI: प्रदूषण मिल्यो! आशा नै बुलावो।',
+    salert:'ताज़ी सूचना',sallalert:'सरकारी सूचना',sasha:'आशा कार्यकर्ता',
+    shealth:'नजदीकी दवाखानो',sscore:'पाणी सुरक्षा स्कोर',sleaderboard:'गाँव री रैंकिंग',
+    nhome:'घर',nalerts:'सूचना',nasha:'आशा',nhealth:'दवाखानो',nscore:'स्कोर',
+    notice:'⚠️ पाणी में बदबू होवे तो मत पियो! आशा नै बुलावो।',
+    call:'कॉल',helpline:'🆘 स्वास्थ्य हेल्पलाइन',free:'मुफत · 24×7',
+    amb:'108 — मुफत एंबुलेंस',tips:'💡 सुरक्षित पाणी रा उपाय',
+    t1:'पाणी नै 5 मिनट उबाळो',t2:'क्लोरीन री गोळी नाखो',t3:'ढक्यो बर्तन काम लो',t4:'पीवण सूं पहले हाथ धोवो',
+    wa_btn:'WhatsApp माथे अलर्ट भेजो',
+    ai_title:'पाणी री जांच',legend_title:'स्थिति संकेत',
+    leg_safe:'सुरक्षित',leg_risk:'सावधान',leg_unsafe:'खतरनाक',
+    offline_main:'ऑफलाइन मोड',offline_sub:'आखरी जाणकारी दिखाई जावे है',
+    score_label:'/ 100 अंक',badge_safe:'SAFE VILLAGE',badge_risk:'RISK ZONE',badge_danger:'DANGER ZONE',
+    score_hint_l:'0 — खतरो',score_hint_r:'100 — सुरक्षित',
+    sev_high:'🔴 उच्च खतरो',sev_med:'🟡 मध्यम खतरो',sev_low:'🟢 कम खतरो',sev_safe:'✅ सुरक्षित',
+    ai_reason_tds:'उच्च TDS ({val} mg/L): पाणी में ज़्यादा खनिज मिल्या है जो किडनी नुकसान पहुंचा सके।',
+    ai_reason_ph:'कम pH ({val}): पाणी खट्टो है। इससे पेट री तकलीफ हो सके।',
+    ai_reason_turb:'उच्च गंदलापन ({val} NTU): पाणी में मिट्टी/बैक्टीरिया मिल्या। हैजा रो खतरो है।',
+  },
+  guj: {
+    sub:'ગ્રામ જળ સ્વાસ્થ્ય',
+    safe:'પાણી પીવા યોગ્ય છે',unsafe:'પાણી ન પીઓ — ખતરનાક!',risk:'સાવધ — તપાસ ચાલુ',
+    aisafe:'AI: બધા માપ WHO મર્યાદામાં.',aiunsafe:'AI: પ્રદૂષણ. આશાને બોલાવો.',
+    salert:'તાજી સૂચના',sallalert:'સરકારી સૂચના',sasha:'આશા કાર્યકર્તા',
+    shealth:'નજીકના આરોગ્ય કેન્દ્ર',sscore:'જળ સુરક્ષા સ્કોર',sleaderboard:'ગામ રેન્કિંગ',
+    nhome:'હોમ',nalerts:'સૂચના',nasha:'આશા',nhealth:'કેન્દ્ર',nscore:'સ્કોર',
+    notice:'⚠️ પાણી ગંધ આવે — ન પીઓ! આશાને બોલાવો.',
+    call:'કૉલ',helpline:'🆘 રાષ્ટ્રીય આરોગ્ય હેલ્પલાઇન',free:'મફત · 24×7',
+    amb:'108 — મફત એમ્બ્યુલન્સ',tips:'💡 સુરક્ષિત પાણીના ઉપાય',
+    t1:'પાણી 5 મિનિટ ઉકાળો',t2:'ક્લોરિન ગોળી નાખો',t3:'ઢાંકેલ વાસણ વાપરો',t4:'હાથ ધોઈ પીઓ',
+    wa_btn:'WhatsApp પર અલર્ટ મોકલો',
+    ai_title:'જળ વિશ્લેષણ',legend_title:'સ્થિતિ સૂચક',
+    leg_safe:'સુરક્ષિત',leg_risk:'સાવધ',leg_unsafe:'ખતરનાક',
+    offline_main:'ઓફલાઇન મોડ',offline_sub:'છેલ્લી માહિતી બતાવાઈ રહી છે',
+    score_label:'/ 100 ગુણ',badge_safe:'SAFE VILLAGE',badge_risk:'RISK ZONE',badge_danger:'DANGER ZONE',
+    score_hint_l:'0 — ખતરો',score_hint_r:'100 — સુરક્ષિત',
+    sev_high:'🔴 ઉચ્ચ જોખમ',sev_med:'🟡 મધ્યમ',sev_low:'🟢 ઓછું',sev_safe:'✅ સુરક્ષિત',
+    ai_reason_tds:'ઊંચો TDS ({val} mg/L): પાણીમાં ખૂબ ખનિજ છે, કિડની માટે હાનિકારક.',
+    ai_reason_ph:'ઓછો pH ({val}): પાણી એસિડિક છે, ઉલ્ટી-ઝાડા થઇ શકે.',
+    ai_reason_turb:'ઊંચી ઘોળ ({val} NTU): જીવાણુ/માટી. ઝાડ-ઝેરી ચેપ.',
+  },
+  en: {
+    sub:'Rural Water Health Monitor',
+    safe:'WATER IS SAFE TO DRINK',unsafe:'DO NOT DRINK — UNSAFE!',risk:'CAUTION — Testing in Progress',
+    aisafe:'AI: All parameters within WHO limits.',aiunsafe:'AI: Contamination found! Call ASHA.',
+    salert:'Latest Alert',sallalert:'Government Alerts',sasha:'ASHA Workers',
+    shealth:'Nearby Health Centres',sscore:'Water Safety Score',sleaderboard:'Village Rankings',
+    nhome:'Home',nalerts:'Alerts',nasha:'ASHA',nhealth:'Health',nscore:'Score',
+    notice:'⚠️ If water smells bad or looks cloudy — DO NOT DRINK! Call ASHA.',
+    call:'Call',helpline:'🆘 National Health Helpline',free:'Free · 24×7',
+    amb:'108 — Free Ambulance',tips:'💡 Safe Water Tips',
+    t1:'Boil water for 5 minutes',t2:'Add chlorine tablet',t3:'Use covered containers',t4:'Wash hands before drinking',
+    wa_btn:'Share Alert on WhatsApp',
+    ai_title:'Water Analysis',legend_title:'Status Key',
+    leg_safe:'Safe',leg_risk:'Caution',leg_unsafe:'Unsafe',
+    offline_main:'Offline Mode',offline_sub:'Showing last known data',
+    score_label:'/ 100 points',badge_safe:'SAFE VILLAGE',badge_risk:'RISK ZONE',badge_danger:'DANGER ZONE',
+    score_hint_l:'0 — Danger',score_hint_r:'100 — Safe',
+    sev_high:'🔴 High Risk',sev_med:'🟡 Moderate Risk',sev_low:'🟢 Low Risk',sev_safe:'✅ Safe',
+    ai_reason_tds:'High TDS ({val} mg/L): Excess dissolved solids may cause kidney and digestive issues.',
+    ai_reason_ph:'Low pH ({val}): Acidic water can cause diarrhea, vomiting, and dental issues.',
+    ai_reason_turb:'High turbidity ({val} NTU): Dirt/bacteria present. Risk of cholera and typhoid.',
+  }
+};
+
+/* ============================================
+   MODULE: NAVIGATION
+   ============================================ */
+function goPage(name) {
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('on'); });
+  document.querySelectorAll('.bitem').forEach(function(b){ b.classList.remove('on'); });
+  document.getElementById('pg-' + name).classList.add('on');
+  document.getElementById('bn-' + name).classList.add('on');
+  window.scrollTo(0, 0);
+}
+
+/* ============================================
+   MODULE: WATER STATUS UPDATE (Feature 6: Animation)
+   ============================================ */
+function updateWater(safe, data) {
+  STATE.drinkable = safe;
+  var d = L[STATE.lang];
+  var card = document.getElementById('wcard');
+  var icon = document.getElementById('wicon');
+  var title = document.getElementById('wtitle');
+  var sub = document.getElementById('wsub');
+
+  // Animate status change
+  card.style.opacity = '0';
+  card.style.transform = 'scale(0.95)';
+
+  setTimeout(function() {
+    if (safe) {
+      card.className = 'water-card safe';
+      icon.textContent = '✅';
+      title.textContent = d.safe;
+      sub.textContent = d.aisafe;
+    } else {
+      card.className = 'water-card danger';
+      icon.textContent = '🚨';
+      title.textContent = d.unsafe;
+      sub.textContent = d.aiunsafe;
+    }
+    card.style.opacity = '1';
+    card.style.transform = 'scale(1)';
+    card.style.transition = 'all 0.5s cubic-bezier(0.34,1.56,0.64,1)';
+  }, 200);
+
+  // Feature 2: AI Card
+  updateAICard(data);
+}
+
+/* ============================================
+   MODULE: AI EXPLANATION CARD (Feature 2)
+   ============================================ */
+function updateAICard(data) {
+  var aiCard = document.getElementById('ai-card');
+  if (!data || STATE.drinkable) {
+    aiCard.classList.remove('show');
+    return;
+  }
+
+  aiCard.classList.add('show');
+  var d = L[STATE.lang];
+  document.getElementById('ai-title').textContent = d.ai_title;
+
+  var ph = data.ph || 7.0;
+  var tds = data.tds || 500;
+  var turb = data.turbidity || 5;
+
+  var phWarn = ph < 6.5 || ph > 8.5;
+  var tdsWarn = tds > 500;
+  var turbWarn = turb > 4;
+
+  // Generate reason
+  var reason = '';
+  if (turbWarn) reason = d.ai_reason_turb.replace('{val}', turb.toFixed(1));
+  else if (tdsWarn) reason = d.ai_reason_tds.replace('{val}', tds);
+  else if (phWarn) reason = d.ai_reason_ph.replace('{val}', ph.toFixed(1));
+  else reason = d.aiunsafe;
+  document.getElementById('ai-reason').textContent = reason;
+}
+
+/* ============================================
+   MODULE: ALERT RENDERING (Feature 3)
+   ============================================ */
+function getSevClass(sev) {
+  if (sev === 'high') return 'r';
+  if (sev === 'medium') return 'y';
+  if (sev === 'safe') return 'g';
+  return 'y';
+}
+
+function getSevLabel(sev) {
+  var d = L[STATE.lang];
+  if (sev === 'high') return d.sev_high;
+  if (sev === 'medium') return d.sev_med;
+  if (sev === 'low') return d.sev_low;
+  return d.sev_safe;
+}
+
+function renderAlerts(alerts) {
+  var homeContainer = document.getElementById('home-alerts-container');
+  homeContainer.innerHTML = '';
+
+  alerts.forEach(function(alert) {
+    var sevClass = getSevClass(alert.severity);
+    var sevLabel = getSevLabel(alert.severity);
+    var casesTxt = alert.cases > 0 ? alert.cases + ' ' + (STATE.lang === 'en' ? 'cases reported' : 'मामले') + '. ' : '';
+    var distTxt = '📍 ' + alert.distance + ' ' + (STATE.lang === 'en' ? 'away' : 'दूर');
+
+    var cardHTML = '<div class="acard ' + sevClass + '">' +
+      '<div class="adot ' + sevClass + '"></div>' +
+      '<div><div class="atitle">' + alert.location + ' — ' + alert.type + '</div>' +
+      '<div class="adesc">' + casesTxt + (alert.severity !== 'safe' ? (STATE.lang === 'en' ? 'Boil water before drinking.' : 'पानी उबाल कर पियें।') : (STATE.lang === 'en' ? 'Water clean. No risk.' : 'पानी साफ। कोई खतरा नहीं।')) + '</div>' +
+      '<span class="asev ' + sevClass + '">' + sevLabel + '</span>' +
+      '<div class="adist">' + distTxt + '</div></div></div>';
+
+    homeContainer.innerHTML += cardHTML;
+  });
+}
+
+/* ============================================
+   MODULE: TOAST NOTIFICATIONS (Feature 3)
+   ============================================ */
+function shareAshaWhatsApp(name, location) {
+  var msg = '🙏 ' + name + ' (' + location + ') — ';
+  msg += STATE.drinkable
+    ? (STATE.lang === 'en' ? 'Water is safe today.' : 'आज पानी सुरक्षित है।')
+    : (STATE.lang === 'en' ? '⚠️ Water UNSAFE! Please advise community. #AquaGuard' : '⚠️ पानी असुरक्षित! कृपया समुदाय को सतर्क करें। #AquaGuard');
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+}
+
+/* ============================================
+   MODULE: GAMIFICATION (Feature 5)
+   ============================================ */
+function renderScore(scoreData) {
+  if (!scoreData) return;
+  var d = L[STATE.lang];
+  var pts = scoreData.points;
+
+  document.getElementById('score-num').textContent = pts;
+  document.getElementById('score-label').textContent = d.score_label;
+  document.getElementById('score-hint-l').textContent = d.score_hint_l;
+  document.getElementById('score-hint-r').textContent = d.score_hint_r;
+  document.getElementById('score-village-label').textContent = (scoreData.village || 'Kankroli').toUpperCase() + ' ' + (STATE.lang === 'en' ? 'VILLAGE' : 'गाँव');
+  document.getElementById('s-leaderboard').textContent = d.sleaderboard;
+
+  // Badge logic
+  var badgeIcon, badgeName;
+  if (pts >= 80) { badgeIcon = '🛡️'; badgeName = d.badge_safe; }
+  else if (pts >= 50) { badgeIcon = '⚠️'; badgeName = d.badge_risk; }
+  else { badgeIcon = '🚨'; badgeName = d.badge_danger; }
+  document.getElementById('badge-icon').textContent = badgeIcon;
+  document.getElementById('badge-name').textContent = badgeName;
+
+  // Animated progress bar
+  var bar = document.getElementById('score-bar');
+  bar.style.width = '0%';
+  setTimeout(function() { bar.style.width = pts + '%'; }, 300);
+
+  // Leaderboard
+  var lbHTML = '';
+  scoreData.leaderboard
+    .sort(function(a,b){ return b.points - a.points; })
+    .forEach(function(item, i) {
+      var isUser = item.name === scoreData.village;
+      lbHTML += '<div class="lb-row" style="' + (isUser ? 'background:#FFF8E1;border-radius:8px;padding:8px;' : '') + '">' +
+        '<div class="lb-rank' + (i < 3 ? ' top' : '') + '">' + (i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1)) + '</div>' +
+        '<div class="lb-name">' + item.name + (isUser ? ' ←' : '') + '</div>' +
+        '<div class="lb-score-bar">' +
+          '<div class="lb-bar-bg"><div class="lb-bar-fill" style="width:' + item.points + '%"></div></div>' +
+          '<div class="lb-score-num">' + item.points + '</div>' +
+        '</div></div>';
+    });
+  document.getElementById('lb-rows').innerHTML = lbHTML;
+}
+
+/* ============================================
+   MODULE: OFFLINE + CACHE (Feature 4)
+   ============================================ */
+function saveToCache(data) {
+  try {
+    localStorage.setItem('aq_data', JSON.stringify(data));
+    localStorage.setItem('aq_time', Date.now().toString());
+  } catch(e) {}
+}
+
+function loadFromCache() {
+  try {
+    var raw = localStorage.getItem('aq_data');
+    var t = localStorage.getItem('aq_time');
+    if (raw) return { data: JSON.parse(raw), time: t ? parseInt(t) : null };
+  } catch(e) {}
+  return null;
+}
+
+function setOfflineMode(cached) {
+  STATE.isOffline = true;
+  var d = L[STATE.lang];
+  document.getElementById('offline-badge').classList.add('show');
+  document.getElementById('offline-banner').classList.add('show');
+  document.getElementById('offline-main').textContent = d.offline_main;
+  document.getElementById('offline-sub').textContent = d.offline_sub;
+  document.getElementById('live-dot').style.background = '#FF7043';
+  document.getElementById('live-txt').textContent = 'CACHED';
+
+  if (cached && cached.time) {
+    var mins = Math.round((Date.now() - cached.time) / 60000);
+    document.getElementById('offline-time').textContent =
+      (STATE.lang === 'en' ? 'Last updated: ' : 'अंतिम अपडेट: ') + (mins < 60 ? mins + (STATE.lang === 'en' ? ' min ago' : ' मिनट पहले') : Math.round(mins/60) + (STATE.lang === 'en' ? ' hr ago' : ' घंटे पहले'));
+  }
+}
+
+/* ============================================
+   MODULE: DATA FETCH (Firebase + Fallback)
+   ============================================ */
+function applyData(data) {
+  STATE.data = data;
+  saveToCache(data);
+  updateWater(data.water.drinkable, data.water);
+  renderAlerts(data.alerts);
+  renderScore(data.score);
+}
+
+function fetchData() {
+  // Try Firebase
+  fetch('https://aqua-82fea-default-rtdb.firebaseio.com/ai_prediction.json')
+    .then(function(r) { return r.json(); })
+    .then(function(firebaseData) {
+      if (firebaseData) {
+        // Merge Firebase drinkable flag into mock data
+        MOCK_DATA.water.drinkable = (firebaseData.drinkable === true || firebaseData.drinkable === 'true');
+        if (firebaseData.ph) MOCK_DATA.water.ph = parseFloat(firebaseData.ph);
+        if (firebaseData.tds) MOCK_DATA.water.tds = parseFloat(firebaseData.tds);
+        if (firebaseData.turbidity) MOCK_DATA.water.turbidity = parseFloat(firebaseData.turbidity);
+      }
+      applyData(MOCK_DATA);
+    })
+    .catch(function() {
+      // No network — use cache or mock
+      var cached = loadFromCache();
+      if (cached && cached.data) {
+        setOfflineMode(cached);
+        applyData(cached.data);
+      } else {
+        setOfflineMode(null);
+        applyData(MOCK_DATA);
+      }
+    });
+}
+
+/* ============================================
+   MODULE: LANGUAGE (setLang)
+   ============================================ */
+function setText(id, txt) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = txt;
+}
+
+function setLang(l) {
+  STATE.lang = l;
+  document.querySelectorAll('.lpill').forEach(function(b){ b.classList.remove('on'); });
+  document.getElementById('lb-' + l).classList.add('on');
+  var d = L[l];
+
+  setText('app-sub', d.sub);
+  setText('s-alert', d.salert);
+  setText('s-allalert', d.sallalert);
+  setText('s-asha', d.sasha);
+  setText('s-health', d.shealth);
+  setText('s-score', d.sscore);
+  setText('n-home', d.nhome);
+  setText('n-alerts', d.nalerts);
+  setText('n-asha', d.nasha);
+  setText('n-health', d.nhealth);
+  setText('n-score', d.nscore);
+  setText('a-notice', d.notice);
+  document.querySelectorAll('.clbl').forEach(function(el){ el.textContent = d.call; });
+  setText('s-helpline', d.helpline);
+  setText('s-free', d.free);
+  setText('s-amb', d.amb);
+  setText('s-tips', d.tips);
+  setText('t1', d.t1);
+  setText('t2', d.t2);
+  setText('t3', d.t3);
+  setText('t4', d.t4);
+  setText('wa-btn-txt', d.wa_btn);
+  setText('legend-title', d.legend_title);
+  setText('leg-safe', d.leg_safe);
+  setText('leg-risk', d.leg_risk);
+  setText('leg-unsafe', d.leg_unsafe);
+  setText('offline-main', d.offline_main);
+  setText('offline-sub', d.offline_sub);
+  setText('score-label', d.score_label);
+  setText('score-hint-l', d.score_hint_l);
+  setText('score-hint-r', d.score_hint_r);
+
+  // Re-render dynamic sections with new language
+  updateWater(STATE.drinkable, STATE.data.water);
+  renderAlerts(STATE.data.alerts);
+  renderScore(STATE.data.score);
+  updateAICard(STATE.data.water);
+}
+
+/* ============================================
+   MODULE: CLOCK
+   ============================================ */
+setInterval(function() {
+  var el = document.getElementById('clk');
+  if (el) el.textContent = new Date().toLocaleTimeString('hi-IN', { hour:'2-digit', minute:'2-digit' });
+}, 1000);
+
+/* ============================================
+   INIT
+   ============================================ */
+setLang('hi');
+fetchData();
+</script>
+</body>
+</html>
